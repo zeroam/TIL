@@ -219,7 +219,7 @@ def playGame(playerTile, computerTile):
 
   while True:
     playerValidMoves = getValidMoves(board, playerTile)
-    computerValidMoves = getValidMoves(board, playerTile)
+    computerValidMoves = getValidMoves(board, computerTile)
 
     if playerValidMoves == [] and computerValidMoves == []:
       return board # No one can move, so end the game.

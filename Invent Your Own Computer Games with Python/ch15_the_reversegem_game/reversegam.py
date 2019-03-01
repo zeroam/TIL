@@ -48,15 +48,15 @@ def isValidMove(board, tile, xstart, ystart):
       x += xdirection
       y += ydirection
 
-    if isOnBoard(x, y) and board[x][y] == tile:
-      # There are pieces to flip over.
-      # Go in the reverse direction until we reach the original space, nothing all the tiles along the way.
-      while True:
-        x -= xdirection
-        y -= ydirection
-        if x == xstart and y == ystart:
-          break
-        tilesToFlip.append([x, y])
+      if isOnBoard(x, y) and board[x][y] == tile:
+        # There are pieces to flip over.
+        # Go in the reverse direction until we reach the original space, nothing all the tiles along the way.
+        while True:
+          x -= xdirection
+          y -= ydirection
+          if x == xstart and y == ystart:
+            break
+          tilesToFlip.append([x, y])
 
   if len(tilesToFlip) == 0: # If no tiles were flipped, this is not valid move.
     return False
@@ -219,7 +219,7 @@ def playGame(playerTile, computerTile):
 
   while True:
     playerValidMoves = getValidMoves(board, playerTile)
-    computerValidMoves = getValidMoves(board, playerTile)
+    computerValidMoves = getValidMoves(board, computerTile)
 
     if playerValidMoves == [] and computerValidMoves == []:
       return board # No one can move, so end the game.
