@@ -95,9 +95,182 @@
 
 ### 도형 그리기
 
+- drawing_functions.py
+
+- 목표
+
+  - 다양한 모양의 도형을 그릴 수 있음
+  - cv2.line(), cv2.circle(), cv2.rectangle, cv2.putText() 사용법을 알 수 있음
+
+- Line 그리기
+
+  - `cv2.line(img, start, end, color, thickness)`
+    - img - 그림을 그릴 이미지 파일
+    - start - 시작 좌표(ex; (0, 0))
+    - end - 종료 좌표(ex; (500, 500))
+    - color - BGR 형태의 Color(ex; (255, 0, 0) -> Blue)
+    - thickness (int) - 선의 두께, pixel
+
+- 사각형 그리기
+
+  - `cv2.rectangle(img, start, end, color, thickness)`
+    - img - 그림을 그릴 이미지
+    - start - 시작 좌표(ex; (0, 0))
+    - end - 종료 좌표(ex; (500, 500))
+    - color - BGR 형태의 Color(ex; (255, 0, 0) -> Blue)
+    - thickness (int) - 선의 두께, pixel
+
+- 원 그리기
+
+  - `cv2.circle(img, center, radian, color, thickness)`
+    - img - 그림을 그릴 이미지
+    - center - 원의 중심 좌표(x, y)
+    - radian - 반지름
+    - color - BGR 형태의 Color
+    - thickness - 선의 두께, -1 이면 원의 안쪽을 채움
+
+- 타원 그리기
+
+  - `cv2.ellipse(img, center, axes, angle, startAngle, endAngle, color[, thickness])`
+    - img - 그림을 그릴 이미지
+    - center - 타원의 중심
+    - axes - 중심에서 가장 큰 거리와 작은 거리
+    - angle - 타원의 기울기 각
+    - startAngle - 타원의 시작 각도
+    - endAngle - 타원이 끝나는 각도
+    - color - 타원의 색
+    - thickness - 선 두께 -1이면 안쪽을 채움
+
+- Polygon 그리기
+
+  - `cv2.polylines(img, pts, isClosed, color, thisckness)`
+    - img - 그림을 그릴 이미지
+    - pts (array) - 연결할 꼭지점 좌표
+    - isClosed - 닫힌 도형 여부
+    - color - BGR 형태의 Color
+    - thickness - 선 두께
+
+- 이미지에 Text 추가
+
+  - `cv2.putText(img, text, org, font, fontScale, color, thickness)`
+
+    - img - 그림을 그릴 이미지
+
+    - text - 표시할 문자열
+
+    - org - 문자열이 표시될 위치. 문자열의 bottom-left corner 점
+
+    - font - 폰트 타입, CV2.FONT_XXX
+
+      - cv2.putText() 문서 참조
+
+    - fontScale - 폰트 크기
+
+      
+
 
 
 ### Mouse로 그리기
+
+- mouse_as_the_color_palette.py
+- 목표
+  - Mouse Event의 적용 방법을 알 수 있음
+  - cv2.setMouseCallback() 함수에 대해 배움
+
+- 마우스 이벤트 목록 확인하기
+  - 다양한 Mouse Event의 종류를 알 수 있음
+
+```python
+import cv2
+events = [i for i in dir(cv2) if 'EVENT' in i]
+print(events)
+```
+
+- `cv2.setMouseCallback(windowName, callback, param=None)`
+
+  - windowName - windowName
+  - callback - callback 함수, callback 함수에는 (event, x, y, flags, param)이 전달됨.
+  - param - callback 함수에 전달되는 Data
+
+- 간단한 Demo(Simple Demo)
+
+  - 화면에 Double-Click을 하면 원이 그려지는 예제
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  # callback 함수
+  def draw_circle(event, x, y, flags, param):
+      if event == cv2.EVENT_LBUTTONDBLCLK:
+          cv2.circle(img, (x, y), 100, (255, 0, 0), -1)
+          
+  # 빈 이미지 생성
+  img = np.zeros((512, 512, 3), np.uint8)
+  cv2.namedWindow('image')
+  cv2.setMouseCallback('image', draw_circle)
+  
+  while(1):
+      cv2.imshow('image', img)
+      if cv2.waitKey(20) & 0xFF == 27:
+          break
+      
+  cv2.destroyAllWindows()
+  ```
+
+- Advanced Demo
+
+  - 마우스를 누른 상태에서 이동시 원 또는 사각형을 그리는 Demo
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  drawing = False     # Mouse가 클릭된 상태 확인
+  mode = True         # True이면 사각형, False면 원
+  ix, iy = -1, -1
+  
+  # mouse callback 함수
+  def draw_circle(event, x, y, flags, param):
+      global ix, iy, drawing, mode
+      
+      if event == cv2.EVENT_LBUTTONDOWN:  # 마우스를 누른 상태
+          drawing = True
+          ix, iy = x, y
+      elif event == cv2.EVENT_MOUSEMOVE:  # 마우스 이동
+          if drawing == True:     # 마우스를 누른 상태일 경우
+              if mode == True:
+                  cv2.rectangle(img, (ix, iy), (x, y), (255, 0, 0), -1)
+              else:
+                  cv2.circle(img, (x, y), 5, (0, 255, 0), -1)
+      elif event == cv2.EVENT_LBUTTONUP:
+          drawing = False
+          if mode == True:
+              cv2.rectangle(img, (ix, iy), (x, y), (255, 0, 0), -1)
+          else:
+              cv2.circle(img, (x, y), 5, (0, 255, 0), -1)
+              
+  img = np.zeros((512, 512, 3), np.uint8)
+  cv2.namedWindow('image')
+  cv2.setMouseCallback('image', draw_circle)
+  
+  while True:
+      cv2.imshow('image', img)
+      
+      k = cv2.waitKey(1) & 0xFF
+      if k == ord('m'):   # 사각형, 원 Mode 변경
+          mode = not mode
+      elif k == 27:       # Esc 누르면 종료
+          break
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+
+
+
 
 
 
