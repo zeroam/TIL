@@ -261,93 +261,71 @@ print(events)
       if k == ord('m'):   # 사각형, 원 Mode 변경
           mode = not mode
       elif k == 27:       # Esc 누르면 종료
-          break
+       	break
       
   cv2.destroyAllWindows()
   ```
-
-  
-
-
-
 
 
 
 
 ### Trackbar
 
+- 목표
 
+  - trackbar와 OpenCV의 연동 방법에 대해서 알 수 있다.
+  - cv2.getTrackbarPos(), cv2.createTrackbar() 함수에 대해 배움
 
-### Basic Operation
+- Code Demo
 
+  - `cv2.createTrackbar(trackbarName, windowName, value, count, onChange)`
+    - trackbarname - trackbar Name
+    - windowName - window name
+    - value (int) - Trackbar가 생성될 때 초기값
+    - count - Trackbar의 Max값. Min값은 항상 0
+    - onChange - Slide 값이 변경될 때 호출되는 Callback 함수. 전달되는 parameter는 trackbar position(트랙바 위치)
+  - `cv2.getTrackbarPos(trackbarName, windowName)`
+    - trackbarName - trackbar name
+    - windowName - trackbar가 등록된 window name
 
+  ```python
+  import cv2
+  import numpy as np
+  
+  def nothing(x):
+      pass
+  
+  # 검은 바탕화면의 윈도우 창 생성
+  img = np.zeros((300, 512, 3), np.uint8)
+  cv2.namedWindow('image')
+  
+  # trackbar를 생성하여 named window에 등록
+  cv2.createTrackbar('R', 'image', 0, 255, nothing)
+  cv2.createTrackbar('G', 'image', 0, 255, nothing)
+  cv2.createTrackbar('B', 'image', 0, 255, nothing)
+  
+  # On/Off 스위치 생성
+  switch = '0:OFF\1:On'
+  cv2.createTrackbar(switch, 'image', 1, 1, nothing)
+  
+  while(1):
+      cv2.imshow('image', img)
+      k = cv2.waitKey(1) & 0xFF
+      if k == 27:
+          break
+      
+      # trackbar의 현재 위치 받기
+      r = cv2.getTrackbarPos('R', 'image')
+      g = cv2.getTrackbarPos('G', 'image')
+      b = cv2.getTrackbarPos('B', 'image')
+      s = cv2.getTrackbarPos(switch, 'image')
+      
+      if s == 0:
+          img[:] = 0
+      else:
+          img[:] = [b,g,r]
+          
+  cv2.destroyAllWindows()
+  ```
 
-### 이미지 연산
-
-
-
-### 이미지 Processing
-
-
-
-### 이미지 임계처리
-
-
-
-### 이미지의 기하학적 변형
-
-
-
-### Image Smoothing
-
-
-
-### Morphological Transformations
-
-
-
-### Image Gradients
-
-
-
-### Image Pyramids
-
-
-
-### Image Contours
-
-
-
-### Contour Feature
-
-
-
-### Contour Property
-
-
-
-### Contours Hierarchy
-
-
-
-### 히스토그램
-
-
-
-### 히스토그램 균일화
-
-
-
-### 2D Histogram
-
-
-
-### 푸리에 변환
-
-
-
-### 템플릿 매칭
-
-
-
-### 허프 변환
+  
