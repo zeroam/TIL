@@ -7,7 +7,7 @@ Created on Wed Mar 27 17:25:37 2019
 #%% Image ROI
 import cv2
 
-img = cv2.imread('baseball-player.jpg')
+img = cv2.imread('img/baseball-player.jpg')
 cv2.imshow('img', img)
 cv2.waitKey(0)
 
@@ -21,7 +21,7 @@ cv2.destroyAllWindows()
 #%% Splitting and Merging Image Channel
 import cv2
 
-img = cv2.imread('baseball-player.jpg')
+img = cv2.imread('img/baseball-player.jpg')
 
 # 채널 분리 및 합치기
 b,g,r = cv2.split(img)
@@ -48,7 +48,7 @@ from matplotlib import pyplot as plt
 
 BLUE = [255,0,0]
 
-img1 = cv2.imread('opencv_logo.png')
+img1 = cv2.imread('img/opencv_logo.png')
 
 replicate = cv2.copyMakeBorder(img1,10,10,10,10,cv2.BORDER_REPLICATE)
 reflect = cv2.copyMakeBorder(img1,10,10,10,10,cv2.BORDER_REFLECT)

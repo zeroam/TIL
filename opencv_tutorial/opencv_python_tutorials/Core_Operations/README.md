@@ -23,7 +23,7 @@
   # 이미지 로드하기
   >>> import cv2
   >>> import numpy as np
-  >>> img = cv2.imread('lena.jpg')
+  >>> img = cv2.imread('img/lena.jpg')
   
   # 특정 pixel 값에 접근
   >>> px = img[100,200]
@@ -78,7 +78,7 @@
   ```python
   import cv2
   
-  img = cv2.imread('baseball-player.jpg')
+  img = cv2.imread('img/baseball-player.jpg')
   cv2.imshow('img', img)
   cv2.waitKey(0)
   
@@ -121,11 +121,49 @@
       - cv2.BORDER_REPLICATE
       - cv2.BORDER_WRAP
 
-![result](result.png)
+![result](img/result.png)
 
 
 
-### 이미지 연산
+### 이미지 연산(Arithmetic Operations on Images)
+
+- 목표
+
+  - 이미지의 더하기, 빼기, 비트연산에 대해서 알 수 있다.
+  - cv2.add(), cv.addWeighted() 함수에 대해 알 수 있다.
+
+- 이미지 더하기(Image Addition)
+
+  - 더하는 방법은 cv2.add() 연산과 Numpy 연산(img1 + img2)으로 하는 방법이 있음
+  - 더한다는 것은 같지만 결과는 다르게 나옴
+  - `cv2.add()`
+    - Saturation 연산
+    - 한계값을 정하고 그 값을 벗어나는 경우는 모두 특정 값으로 계산하는 방식
+    - 이미지에서 0이하는 모두 0, 255이상은 모두 255로 표현
+  - Numpy(img1 + img2)
+    - modulo 연산
+    - a와 b는 n으로 나눈 나머지 값이 같다라는 의미
+    - 이미지에서는 연산의 결과가 256보다 큰 경우는 256으로 나눈 나머지 값으로 결정함
+
+  ```bash
+  
+  >>> import numpy as np
+  >>> x = np.uint8([250])
+  >>> y = np.uint8([10])
+  
+  >>> print(cv2.add(x,y)) # 250+10 = 260 => 255
+  [[255]]
+  
+  >>> print(x+y)          # 250+10 = 260 % 256 = 4
+  [4]
+  ```
+
+  
+
+- 이미지 Blending
+  - 이미지를 합칠 때 가중치를 두어 합치는 방법
+
+
 
 
 
