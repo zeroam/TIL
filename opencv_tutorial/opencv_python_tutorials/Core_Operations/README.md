@@ -140,10 +140,15 @@
     - Saturation 연산
     - 한계값을 정하고 그 값을 벗어나는 경우는 모두 특정 값으로 계산하는 방식
     - 이미지에서 0이하는 모두 0, 255이상은 모두 255로 표현
+
+  ![flower_saturation](img/flower_saturation.jpg)
+
   - Numpy(img1 + img2)
     - modulo 연산
     - a와 b는 n으로 나눈 나머지 값이 같다라는 의미
     - 이미지에서는 연산의 결과가 256보다 큰 경우는 256으로 나눈 나머지 값으로 결정함
+
+  ![flower_modulo](img/flower_modulo.jpg)
 
   ```bash
   
@@ -161,7 +166,33 @@
   
 
 - 이미지 Blending
+
   - 이미지를 합칠 때 가중치를 두어 합치는 방법
+
+  ```python
+  import cv2
+  
+  img1 = cv2.imread('img/flower1.jpg')
+  img2 = cv2.imread('img/flower2.jpg')
+  
+  def nothing(x):
+      pass
+  
+  cv2.namedWindow('image')
+  cv2.createTrackbar('W', 'image', 0, 100, nothing)
+  
+  while True:
+      w = cv2.getTrackbarPos('W', 'image')
+      dst = cv2.addWeighted(img1, float(100-w) * 0.01, img2, float(w)* 0.01, 0)
+      cv2.imshow('image', dst)
+      
+      if cv2.waitKey(1) & 0xFF == 27:
+          break
+      
+  cv2.destroyAllWindows()
+  ```
+
+- 비트연산(Bitwise Operations)
 
 
 
