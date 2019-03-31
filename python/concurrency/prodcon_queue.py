@@ -10,22 +10,22 @@ class Pipeline(queue.Queue):
         super().__init__(maxsize=10)
 
     def get_message(self, name):
-        logging.debug(f"{name}: about to get from queue")
+        logging.debug("%s: about to get from queue", name)
         value = self.get()
-        logging.debug(f"{name}: got {message} from queue")
+        logging.debug("%s: got %d from queue", name, value)
         return value
 
     def set_message(self, value, name):
-        logging.debug(f"{name}: about to add {value} to queue")
+        logging.debug("%s: about to add %d to queue", name, value)
         self.put(value)
-        logging.debug(f"{name}: added {value} to queue")
+        logging.debug("%s: added %d to queue", name, value)
 
 
 def producer(pipeline, event):
     """Pretend we're getting a number from the network."""
     while not event.is_set():
         message = random.randint(1, 101)
-        logging.info(f"Producer got message: {message}")
+        logging.info("Producer got message: %s", message)
         pipeline.set_message(message, "Producer")
 
     logging.info("Producer received EXIT event. Exiting")
@@ -37,7 +37,8 @@ def consumer(pipeline, event):
     while not event.is_set() or not pipeline.empty():
         message = pipeline.get_message("Consumer")
         logging.info(
-            f"Consumer storing message: {message} (queue size={pipeline.qsize()}"
+            "Consumer storing message: %s (queue size=%d)",
+            message, pipeline.qsize(),
         )
     
     logging.info("Consumer received EXIT event. Exiting")
