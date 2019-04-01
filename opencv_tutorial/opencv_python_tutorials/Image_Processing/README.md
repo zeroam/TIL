@@ -565,11 +565,222 @@
 
 
 
-### Morphological Transformations
+### Morphological Transformations(형태론적 변환)
+
+- morphological_transformations.py
+
+- 목표 
+  - Morphological 방법인 Erosion, Dilation, Opening, Closing에 대해서 알 수 있다.
+  - cv2.erod(), cv2.dilate(), cv2.morphologyEx() 함수에 대해서 알 수 있다.
+- **Theory**
+  - Morphological Transformation은 이미지를 Segmentation 하여 단순화, 제거, 보정을 통해서 형태를 파악하는 목적으로 사용이 됨
+    - 일반적으로 binary나 grayscale image에 사용이 됨
+    - 사용하는 방법으로는 Dilation(팽창), Erosion(침식) 그리고 2개를 조합한 Opening과 Closing이 있음
+    - 2가지 Input 값(원본이미지, structuring element)
+      - structuring element
+        - 원본이미지에 적용되는 kernel, 중심을 원점으로 사용할 수도 있고, 원점을 변경할 수도 있음
+        - 일반적으로 꽉찬 사각형, 타원형, 십자형을 많이 사용함
+- **Erosion(침식)**
+  - 각 Pixel에 structuring element를 적용하여 하나라도 0이 있으면, 대상 pixel을 제거하는 방법
+  - **이 방법은 작은 Object를 제거하는 효과가 있음**
+  - `cv2.erode(src, kernel, dst, anchor, iterations, borderType, borderValue)`
+    - src - the depth should be one of CV_8U, CV_16U, CV_16S, CV_32F or CV_64F.
+    - kernel - structuring element. cv2.getStructuringElement() 함수로 만들 수 있음
+    - anchor - structuring element의 중심. default (-1, -1)로 중심점
+    - iterations - erosion 적용 반복 횟수
+
+![morph_erode](img/morph_erode.png)
+
+- **Dilation(팽창)**
+  - Erosion과 반대로 확장한 후 작은 구멍을 채우는 방법
+  - Erosion과 마찬가지로 각 pixel에 structuring element를 적용함
+    - 대상 pixel에 대해서 OR 연산을 수행함
+    - 겹치는 부분이 하나라도 있으면 이미지를 확장함
+  - **경계가 부드러워지고 구멍이 메꿔지는 효과**
+  - `cv2.dilation(src, kernel, dst, anchor, iterations, borderType, borderValue)`
+    - src – the depth should be one of CV_8U, CV_16U, CV_16S, CV_32F or CV_64F.
+    - kernel – structuring element. `cv2.getStructuringElemet()` 함수로 만들 수 있음.
+    - anchor – structuring element의 중심. default (-1,-1)로 중심점.
+    - iterations – dilation 적용 반복 횟수
+
+![morph_dilate](img/morph_dilate.png)
 
 
 
-### Image Gradients
+- **Opening & Closing**
+
+  - Opening과 Closing은 Erosion과 Dilation의 조합 결과
+
+    - 차이점은 어느 것을 먼저 적용하는지
+
+  - Opening
+
+    - Erosion 적용 후 Dilation 적용
+    - 작은 Object나 돌기 제거에 적합
+
+  - Closing
+
+    - Dilation 적용 후 Erosion 적용
+    - 전체적인 윤곽 파악에 적합
+
+  - `cv2.morphologyEx(src, op, kernel[, dst[, anchor[, iterations[, borderType[, borderValue]]]]]) -> dst`
+
+    - **src** – Source image. The number of channels can be arbitrary. The depth should be one of `CV_8U`, `CV_16U`, `CV_16S`, `CV_32F` or ``CV_64F`.
+
+    - op
+
+      Type of a morphological operation that can be one of the following:
+
+      - **MORPH_OPEN** - an opening operation
+      - **MORPH_CLOSE** - a closing operation
+      - **MORPH_GRADIENT** - a morphological gradient. Dilation과 erosion의 차이.
+      - **MORPH_TOPHAT** - “top hat”. Opeining과 원본 이미지의 차이
+      - **MORPH_BLACKHAT** - “black hat”. Closing과 원본 이미지의 차이
+
+    - **kernel** – structuring element. `cv2.getStructuringElemet()` 함수로 만들 수 있음.
+
+    - **anchor** – structuring element의 중심. default (-1,-1)로 중심점.
+
+    - **iterations** – erosion and dilation 적용 횟수
+
+    - **borderType** – Pixel extrapolation method. See `borderInterpolate` for details.
+
+    - **borderValue** – Border value in case of a constant border. The default value has a special meaning.
+
+
+
+- **Structuring Element**
+
+  - `cv2.getStructuringElement(shape, ksize[, anchor]) -> retval`
+    - shape - Element의 모양
+      - **MORPH_RET** : 사각형 모양
+      - **MORPH_ELLIPSE** : 타원형 모양
+      - **MORPH_CROSS** : 십자 모양
+    - ksize - structuring element 사이즈
+  - Strucring Element 생성
+
+  ```bash
+  # numpy를 이용한 사각형 생성
+  >>> import numpy as np
+  >>> kernel = np.ones((5,5), np.uini8)
+  
+  # 함수를 사각형 이용한 생성
+  >>> cv2.getStructuringElement(cv2.MORPH_REC,(5,5))
+  array([ [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1],
+          [1, 1, 1, 1, 1]], dtype=uint8)
+          
+  # 원 또는 타원 모양
+  >>> cv2.getStructuringElement(cv2.MORP_ELLIPSE,(5,5))
+  array([[0, 0, 1, 0, 0],
+         [1, 1, 1, 1, 1],
+         [1, 1, 1, 1, 1],
+         [1, 1, 1, 1, 1],
+         [0, 0, 1, 0, 0]], dtype=uint8)
+  ```
+
+  
+
+  - 예제 코드
+
+  ```python
+  import cv2
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/morph.png')
+  
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+  #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+  #kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5))
+  
+  # erosion : 침식, dilation : 확장
+  erosion = cv2.erode(img, kernel, iterations = 1)
+  dilation = cv2.dilate(img, kernel, iterations = 1)
+  
+  # opening : erosion -> dilation
+  opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+  # closing : dilation -> erosion
+  closing = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+  # gradient : dilation과 erosion의 차이
+  gradient = cv2.morphologyEx(img, cv2.MORPH_GRADIENT, kernel)
+  # tophat : opening과 원본의 차이
+  tophat = cv2.morphologyEx(img, cv2.MORPH_TOPHAT, kernel)
+  # blackhat : closing과 원본의 차이
+  blackhat = cv2.morphologyEx(img, cv2.MORPH_BLACKHAT, kernel)
+  
+  images = [img, erosion, dilation, opening, closing, gradient, tophat, blackhat]
+  titles = ['image', 'erosion', 'dilation', 'opening', 'closing', 'gradient', 'tophat', 'blackhat']
+  
+  # plt 사이즈 조정
+  plt.figure(figsize=(8,6))
+  
+  for i in range(len(images)):
+      plt.subplot(3, 3, i+1), plt.imshow(images[i]), plt.title(titles[i])
+      plt.xticks([]), plt.yticks([])
+      
+  plt.show()
+  ```
+
+  
+
+![morph_result](img/morph_result.png)
+
+
+
+### Image Gradients(기울기)
+
+- image_gradients.py
+
+- 목표
+  - Edge Detection에 대해서 알 수 있다.
+- Gradient(기울기)
+  - 스칼라장(즉, 공간)에서 최대의 증가율을 나타내는 벡터장(방향과 힘)을 뜻함
+  - 영상처리에서 gradient는 영상의 edge 및 그 방향을 찾는 용도로 활용이 됨
+- **Sobel & Scharr Filter**
+  - Gaussian smoothing과 미분을 이용한 방법
+    - 노이즈가 있는 이미지에 적용하면 좋음
+    - X축과 Y축을 미분하는 방법으로 경계값을 계산함
+  - 직선을 미분하면 상수, 곡선을 미분하면 또 다른 방정식이 나오는 성질을 이용하여 edge에 대한 선을 그려주는 기능을 함
+    - X축 미분은 수평선(수직선이 남음), Y축 미분은 수직선(수평선이 남음)을 미분하여 경계가 사라지는 효과가 있음
+    - 미분시 소실되는 표본의 정보가 많을 수 있어 aperture_size 값을 이용하여 소실되는 정도를 조절할 수 있음
+  - `cv2.Sobel(src, ddepth, dx, dy[, dst[, ksize[, scale[, delta[, borderType]]]]]) -> dst`
+    - src - input image
+    - ddepth - output image의 depth, -1이면 input image와 동일
+    - dx - x축 미분지수
+    - dy - y축 미분지수
+    - ksize - kernel size(ksize x ksize)
+  - `cv2.Scharr(src, ddepth, dx, dy[, dst[, scale[, delta[, borderType]]]]) -> dst`
+    - cv2.Sobel() 함수와 동일하나 ksize가 sobel의 3x3보다 좀 더 정확하게 적용이 됨
+- **Laplacian 함수**
+  - 이미지의 가로와 세로에 대한 Gradient를 2차 미분한 값
+    - Sobel filter에 미분의 정도가 더해진 것과 비슷
+  - blob(주위의 pixel과 확연한 pixel차이를 나타내는 덩어리)검출에 많이 사용됨
+  - `cv2.Laplacian(src, ddepth[, dst[, ksize[, scale[, delta[, borderType]]]]]) -> dst`
+    - src - source image
+    - ddepth - output image의 depth
+- **Canny Edge Detection**
+  - 가장 유명한 Edge Detection 방법
+  - 여러 단계의 Algorithm을 통해서 경계를 찾아 냄
+    1. Noise Reduction
+       - 이미지의 Noise를 제거함. 이 때 5x5의 Gaussian filter를 이용함
+    2. Edge Gradient Detection
+       - 이미지에서 Gradient의 방향과 강도를 확인함
+       - 경계값에서는 주변과 색이 다르기 때문에 미분값이 급속도로 변하게 됨
+       - 이를 통해 경계값 후보군을 선별함
+    3. Non-maximum Suppression
+       - 이미지의 pixel을 Full scan하여 Edge가 아닌 pixel은 제거함
+    4. Hysteresis Thresholding
+       - 지금까지 Edge로 판단된 pixel이 진짜 edge인지 판별하는 작업을 함
+       - max val과 min val(임계값)을 설정하여 max val이상은 강한 Edge, min과 max 사이는 약한 edge로 설정함
+       - 약한 edge가 진짜 edge인지 확인하기 위해서 강한 edge로 연결되어 있으면 edge로 판단하고 그러지 않으면 제거함
+  - `cv2.Canny(image, thresdhold1, threshold2[, edges[, apertureSize[, L2gradient]]]) -> edges`
+    - image - 8 bit input images
+    - threshold1 - Hysteresis Thresholding 작업에서의 min값
+    - threshold2 - Hysteresis Thresholding 작업에서의 max값
+
+![image_gradient_result](img/image_gradient_result.png)
 
 
 
