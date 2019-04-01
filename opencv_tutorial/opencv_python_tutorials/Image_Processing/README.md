@@ -437,6 +437,8 @@
 
 ### Image Smoothing
 
+- image_smoothing.py
+
 - 목표
 
   - 다양한 Filter를 이용하여 Blur 이미지를 만들 수 있다.
@@ -562,6 +564,8 @@
   ```
 
   
+
+![blurring_result](img/blurring_result.png)
 
 
 
@@ -785,6 +789,8 @@
 
 
 ### Image Pyramids
+
+
 
 
 
