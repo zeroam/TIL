@@ -29,6 +29,7 @@
     - 흰색과 검은색으로만 표현이 되는 영상
     - dithering : binary image의 밀도를 조절하여 밝기를 표현하는 방법
 - Grayscale Image
+
   - pixel당 8bit, 즉 256단계의 명암(빛의 세기)를 표현할 수 있는 이미지
 - Color Image
   - pixel의 색을 표현하기 위해 pixel당 24bit를 사용함(총 16,777,216 색)
@@ -230,9 +231,337 @@
 
 ### 이미지의 기하학적 변형
 
+-  image_transformations.py
+
+- 목표
+
+  - 기하학적 변형에 대해서 알 수 있다.
+  - cv2.getPerspectiveTransform() 함수에 대해서 알 수 있다.
+
+- Transformations(변환)
+
+  - 변환이란 수학적으로 표현하면 다음과 같다
+
+    -> 좌표 x를 좌표 x'로 변환하는 함수
+
+  - 예로는 사이즈 변경(Scaling), 위치변경(Translation), 회전(Rotation) 등이 있다
+
+- 변환의 종류
+
+  - 강체변환(Ridid-Body) : 크기 및 각도가 보존(ex; Translation, Rotation)
+  - 유사변환(Similarity) : 크기는 변하고 각도는 보존(ex; Scaling)
+  - 선형변환(Linear) : Vector 공간에서의 이동. 이동변환은 제외
+  - Affine : 선형변환과 이동변환까지 포함. 선의 수평선은 유지(ex; 사각형 -> 평행사변형)
+  - Perspective : Affine 변환에 수평성도 유지되지 않음. 원근변환
+
+- **Scaling**
+
+  - Scaling은 이미지의 사이즈가 변하는 것
+  - OpenCV에서는 cv2.resize() 함수를 사용하여 적용할 수 있음
+  - 사이즈가 변하면 pixel 사이의 값을 결정해야 하는데, 이 때 사용하는 것을 보간법(Interpolation method)라고 함
+    - 사이즈를 줄일 때 : cv2.INTER_AREA
+    - 사이즈를 크게 할 때 : cv2.INTER_CUBIC, cv2.INTER_LINEAR
+  - `cv2.resize(img, dsize, fx, fy, interpolation)`
+    - img - image
+    - dsize - Manual Size, 가로, 세로 형태의 tuple(ex; (100,200))
+    - fx - 가로 사이즈의 배수. 2배로 크게하려면 2, 반으로 줄이려면 0.5
+    - fy - 세로 사이즈의 배수
+    - interpolation - 보간법
+
+  ```python
+  import cv2
+  
+  img = cv2.imread('img/logo.png')
+  
+  # 행 : Height, 열 : Width
+  height, width = img.shape[:2]
+  
+  # 이미지 축소
+  shrink = cv2.resize(img, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+  
+  # Manual Size 지정
+  zoom1 = cv2.resize(img, (width*2, height*2), interpolation=cv2.INTER_CUBIC)
+  
+  # 배수 Size 지정
+  zoom2 = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_LINEAR)
+  
+  cv2.imshow('Original', img)
+  cv2.imshow('Shrink', shrink)
+  cv2.imshow('Zoom1', zoom1)
+  cv2.imshow('Zoom2', zoom2)
+  
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+- **Translation**
+
+  - 이미지의 위치를 변경하는 변환
+  - `cv2.warpAffine(src, M, dsize)`
+    - src - Image
+    - M - 변환 행렬
+    - dsize(tuple) - ouput image size(ex; (width=colums, height=rows))
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  img = cv2.imread('img/logo.png')
+  
+  rows, cols = img.shape[:2]
+  
+  # 변환 행렬, x축으로 10, Y축으로 20 이동
+  M = np.float32([[1, 0, 10], [0, 1, 20]])
+  
+  dst = cv2.warpAffine(img, M, (cols, rows))
+  cv2.imshow('Original', img)
+  cv2.imshow('Translation', dst)
+  
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+- **Rotation**
+
+  - 물체를 평면상의 한 점을 중심으로 @만큼 회전하는 변환
+  - 양의 각도는 시계반대 방향으로 회전을 함
+  - 변환 행렬이 필요한데, 변환 행렬을 생성하는 함수가 cv2.getRotationMatrix2D()
+  - `cv2.getRotationMatrix2D(center, angle, scale) -> M`
+    - center - 이미지 중심 좌표
+    - angle - 회전 각도
+    - scale - scale factor
+
+  ```python
+  import cv2
+  
+  img = cv2.imread('img/logo.png')
+  
+  rows, cols = img.shape[:2]
+  
+  # 이미지의 중심점을 기준으로 90도 회전하면서 0.5배 Scale
+  M = cv2.getRotationMatrix2D((cols/2, rows/2), 90, 0.5)
+  
+  dst = cv2.warpAffine(img, M, (cols, rows))
+  
+  cv2.imshow('Original', img)
+  cv2.imshow('Rotations', dst)
+  
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+- Affine Transformation
+
+  - 선의 평행선은 유지가 되면서 이미지를 변환하는 작업
+  - 이동, 확대, Scale, 반전까지 포함된 변환
+  - Affine 변환을 위해서는 3개의 Match가 되는 점이 있으면 변환행렬을 구할 수 있음
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/chessboard.jpg')
+  
+  # RGB -> BGR로 변환
+  img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+  
+  rows, cols, ch = img.shape
+  
+  pts1 = np.float32([[200, 100], [400, 100], [200, 200]])
+  pts2 = np.float32([[200, 300], [400, 200], [200, 400]])
+  
+  # pts1의 좌표에 표시. Affine 변환 후 이동 점 확인
+  cv2.circle(img, (200, 100), 10, (255, 0, 0), -1)
+  cv2.circle(img, (400, 100), 10, (0, 255, 0), -1)
+  cv2.circle(img, (200, 200), 10, (0, 0, 255), -1)
+  
+  M = cv2.getAffineTransform(pts1, pts2)
+  
+  dst = cv2.warpAffine(img, M, (cols, rows))
+  
+  plt.subplot(121), plt.imshow(img), plt.title('image')
+  plt.subplot(122), plt.imshow(dst), plt.title('Affine')
+  plt.show()
+  ```
+
+![affine_transform](img/affine_transform.png)
+
+
+
+- **Perspective Tranformation**
+
+  - Perspective(원근법) 변환
+  - 직선의 성질만 유지되고, 선의 평행성은 유지가 되지 않는 변환
+    - 기차길은 서로 평행하지만 원근변환을 거치면 평행성은 유지되지 못하고 하나의 점에서 만나는 것처럼 보임
+  - 4개의 Point의 Input값과 이동할 Output Point가 필요
+  - 변환 행렬을 구하기 위해서는 cv2.getPerspectiveTransform() 함수가 필요하며, cv2.warpPerspective() 함수에 변환행렬값을 적용하여 최종 결과 이미지를 얻을 수 있음
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img_origin = cv2.imread('img/perspective.jpg')
+  img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+  
+  # [x, y] 좌표점을 4x2의 행렬로 작성
+  # 좌표점은 좌상 -> 좌하 -> 우상 -> 우하
+  pts1 = np.float32([[414, 393], [75, 745], [489, 393], [245, 745]])
+  
+  # 좌표의 이동점
+  pts2 = np.float32([[100, 100], [100, 800], [800, 100], [800, 800]])
+  
+  # pts1의 좌표에 표시. perspective 변환 후 이동 점 확인
+  cv2.circle(img, (414, 393), 20, (255,0,0), -1)
+  cv2.circle(img, (75, 745), 20, (0,255,0), -1)
+  cv2.circle(img, (489, 393), 20, (0,0,255), -1)
+  cv2.circle(img, (245, 745), 20, (0,0,0), -1)
+  
+  M = cv2.getPerspectiveTransform(pts1, pts2)
+  
+  dst = cv2.warpPerspective(img, M, (1500, 1000))
+  
+  plt.subplot(121), plt.imshow(img), plt.title('image')
+  plt.subplot(122), plt.imshow(dst), plt.title('Perspective')
+  plt.show()
+  ```
+
 
 
 ### Image Smoothing
+
+- 목표
+
+  - 다양한 Filter를 이용하여 Blur 이미지를 만들 수 있다.
+  - 사용자 정의 Filter를 적용할 수 있다.
+
+- Image Filtering
+
+  - 이미지도 음성 신호처럼 주파수로 표현할 수 있슴
+    - 일반적으로 고주파는 밝기의 변화가 많은 곳, 즉 경계선 영역에서 나타나며, 일반적인 배경은 저주파로 나타남
+    - 이것을 바탕으로 고주파를 제거하면 Blur 처리가 되며, 저주파를 제거하면 대상의 영역을 확인할 수 있음
+  - Low-pass filter(LPF)와 High-pass filter(HPF)를 이용하며, LPF를 적용하면 노이즈 제거나 blur 처리를 할 수 있으며, HPF를 적용하면 경계선을 찾을 수 있음
+  - OpenCV에서는 cv2.filter2D() 함수를 이용하며 이미지에 kernel(filter)를 적용하여 이미지를 Filtering 할 수 있음
+  - Filter가 적용되는 방법
+    - 이미지의 각 pixel에 kernel을 적용함
+    - 5x5 kernel인 경우에 각 pixel에 5x5윈도우를 올려놓고, 그 영역안에 포함되는 값의 Sum을 한 후에 25로 나눔
+    - 그 결과는 해당 윈도우 영역안의 평균값이 되고, 그 값을 해당 pixel에 적용하는 방식
+  - kernel 사이즈를 조정하면서 결과를 확인할 수 있는 예제
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  def nothing(x):
+      pass
+  
+  img = cv2.imread('img/squirrel.jpg')
+  
+  # 사이즈 조정
+  h, w = img.shape[:2]
+  r = 900/w
+  dim = (int(r*w), int(r*h))
+  img = cv2.resize(img, dim)
+  
+  cv2.namedWindow('image')
+  cv2.createTrackbar('K', 'image', 1, 20, nothing)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xFF == 27:
+          break
+      k = cv2.getTrackbarPos('K', 'image')
+      
+      # (0, 0)이면 에러가 발생함으로 1로 치환
+      if k == 0:
+          k = 1
+          
+      # trackbar에 의해서 (1,1) ~ (20,20) kernel 생성
+      kernel = np.ones((k,k), np.float32) / (k**2)
+      dst = cv2.filter2D(img, -1, kernel)
+      
+      cv2.imshow('image', dst)
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+- Image Blurring
+
+  - Image Blurring은 low-pass filter를 이미지에 적용하여 얻을 수 있음
+  - 고주파 영역을 제거함으로써 노이즈를 제거하거나 경계선을 흐리게 할 수 있음
+  - **Averaging**
+    - Box 형태의 kernel을 이미지에 적용한 후 평균값을 box의 중심점에 적용하는 형태
+    - cv2.blur() 또는 cv2.boxFilter() 함수로 적용할 수 있음
+    - `cv2.blur(src, ksize)`
+      - src - channel 수는 상관 없으나, depth(Data Type)은 CV_8U, CV_16U, CV_16S, CV_32F or CV_64F
+      - ksize - kernel 사이즈(ex; (3,3))
+  - **Gaussian Filtering**
+    - box filter는 동일한 값으로 구성된 kernel을 사용하지만, Gaussian Filter는 Gaussian 함수를 이용한 Kernel을 적용함
+      - kernel 행렬의 값을 Gaussian 함수를 통해서 수학적으로 생성하여 적용
+      - kernel의 사이즈는 양수이면서 홀수로 지정을 해야함
+      - 이미지의 Gaussian Noise(전체적으로 밀도가 동일한 노이즈, 백색노이즈)를 제거하는데 가장 효과적
+    - `cv2.GaussianBlur(img, ksize, sigmaX)`
+      - img - channel 수는 상관 없으나, depth(Data Type)은 CV_8U, CV_16U, CV_16S, CV_32F or CV_64F
+      - ksize - (width, height) 형태의 kernel size. width와 height은 서로 다를 수 있지만, 양수의 홀수로 지정해야 함
+      - sigmaX - Gaussian kernel standard deviation in X direction
+  - **Median Filtering**
+    - kernel window와 pixel의 값들을 정렬한 후에 중간값을 선택하여 적용
+      - salt-and-pepper noise 제거에 효과적
+    - `cv2.medianBlur(src, ksize)`
+      - src - 1,3,4 channel image. depth가 CV_8U, CV_16U, or CV_32F이면 ksize는 3또는 5, CV_8U이면 더 큰 ksize 가능
+      - ksize - 1보다 큰 홀수
+  - **Bilateral Filtering**
+    - 지금까지의 Blur처리는 경계선까지 Blur 처리가되어 경계선이 흐려지게 됨
+    - Bilateral Filtering(양방향 필터)은 경계선을 유지하면서 Gaussian Blur 처리를 해주는 방법
+      - Gaussian 필터를 적용하고, 또 하나의 Gaussian 필터를 주변 pixel까지 고려하여 적용하는 방식
+    - `cv2.bilateralFilter(src, d, sigmaColor, sigmaSpace)`
+      - src - 8-bit, 1 or 3 Channel image
+      - d - filtering시 고려할 주변 pixel 지름
+      - sigmaColor - Color를 고려할 공간. 숫자가 크면 멀리 있는 색도 고려함
+      - sigmaSpace - 숫자가 크면 멀리 있는 pixel도 고려함
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/squirrel.jpg')
+  
+  # pyplot을 사용하기 위해 BGR을 RGB로 변환
+  b,g,r = cv2.split(img)
+  img = cv2.merge([r,g,b])
+  
+  # 일반 Blur
+  dst1 = cv2.blur(img, (7,7))
+  
+  # GaussianBlur
+  dst2 = cv2.GaussianBlur(img, (5,5), 0)
+  
+  # Median Blur
+  dst3 = cv2.medianBlur(img, 9)
+  
+  # Bilateral Filtering
+  dst4 = cv2.bilateralFilter(img, 9, 75, 75)
+  
+  images = [img, dst1, dst2, dst3, dst4]
+  titles = ['Original', 'Blur(7X7)', 'Gaussian Blur(5X5)', 'Median Blur', 'Bilateral']
+  
+  for i in range(5):
+      plt.subplot(3, 2, i+1), plt.imshow(images[i]), plt.title(titles[i])
+      plt.xticks([]), plt.yticks([])
+      
+  plt.show()
+  ```
+
+  
 
 
 
