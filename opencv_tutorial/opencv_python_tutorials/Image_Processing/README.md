@@ -790,11 +790,171 @@
 
 ### Image Pyramids
 
+- image_pyramids.py
+
+- 목표
+  - Image Pyramid에 대해서 알 수 있다.
+  - cv2.pyrUp() 와 cv2.pyrDown() 에 대해서 알 수 있다.
+
+- Theory
+
+  - 일반적으로는 고정된 이미지 사이즈를 작업을하지만, 때때로 동일한 이미지에 대해서 다양한 사이즈를 가지고 작업을 해야 하는 경우가 있음
+
+    - 만일, 이미지에서 얼굴을 찾을 경우 얼굴의 사이즈를 확신할 수 없음
+    - 이럴 경우에는 원본 이미지에 대한 다양한 사이즈에서 얼굴을 찾는다면 좀 더 정확하고 확실한 이미지를 찾을 수 있음
+
+  - 동일 이미지의 서로 다른 사이즈의 set을 Image Pyramids라고 함
+
+    - 가장 아래에 가장 큰 해상도를 놓고 점점 줄여가면서 쌓아가는 형태
+
+  - 종류
+
+    - Gaussian Pyramids
+      - Gaussian Pyramid의 High Level(낮은 해상도. Pyramid의 상단)은 Lower level에서 row와 column을 연속적으로 제거하면서 생성됨.
+      - MxN 사이즈의 이미지는 M/2 x N/2가 적용되면 1/4사이즈로 줄어들게 됨
+
+    ```python
+    import cv2
+    
+    img = cv2.imread('img/monkey.tiff')
+    
+    lower_reso = cv2.pyrDown(img)   # 원본 이미지의 1/4 사이즈
+    higher_reso = cv2.pyrUp(img)    # 원본 이미지의 4배 사이즈
+    
+    cv2.imshow('img', img)
+    cv2.imshow('lower', lower_reso)
+    cv2.imshow('higher', higher_reso)
+    
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    ```
+
+    
+
+    - Laplacian Pyramids
+      - cv2.pyrDown() 후에 cv2.pyrUP()을 적용하면 원본과 이미지 차이가 발생할 수 있음(홀수일때)
+      - 이것을 resize를 통해 동일한 shape로 만든 후 원본과 이 이미지의 배열 차이를 구하면 외곽선이 남게됨(짝수 해상도도 마찬가지)
+
+    ```python
+    import cv2
+    
+    img = cv2.imread('img/monkey.tiff')
+    print(img.shape) # (512, 512, 3)
+    
+    GAD = cv2.pyrDown(img)
+    print(GAD.shape) # (256, 256, 3)
+    
+    GAU = cv2.pyrUp(GAD)
+    print(GAU.shape) # (512, 512, 3)
+    
+    temp = cv2.resize(GAU, (512, 512))
+    res = cv2.subtract(img, temp)
+    
+    cv2.imshow('res', res)
+    
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    ```
+
+    
+
+![lap_pyramids](img/lap_pyramids.png)
 
 
 
 
-### Image Contours
+
+- 이미지 Pyrimids를 이용하면 이미지 결합을 자연스럽게 처리할 수 있음
+
+- 작업 순서
+
+  - 2개의 이미지를 각각 Load함
+  - 각 이미지에 대해서 적당한 Gaussian Pyramid를 생성함
+  - Gaussian Pyramid를 이용하여 Laplacian Pyramid를 생성함
+  - 각 단계의 Laplicain Pyramid를 이용하여 각 이미지의 좌측과 우측을 결합
+  - 결합한 결과중 가장 작은 이미지를 확대하면서 동일 사이즈의 결합결과와 Add하여 외곽선을 선명하게 처리함
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  STEP = 6
+  
+  # 1단계
+  A = cv2.imread('img/apple.jpg')
+  B = cv2.imread('img/orange.jpg')
+  
+  
+  # 2단계
+  # A 이미지에 대한 Gaussian Pyramid를 생성
+  # 점점 작아지는 Pyramid
+  G = A.copy()
+  gpA = [G]
+  for i in range(STEP):
+      G = cv2.pyrDown(G)
+      gpA.append(G)
+      
+  # B 이미지에 대한 Gaussian Pyramid 생성
+  # 점점 작아지는 Pyramid
+  G = B.copy()
+  gpB = [G]
+  for i in range(STEP):
+      G = cv2.pyrDown(G)
+      gpB.append(G)
+      
+      
+  # 3단계
+  # A 이미지에 대한 Laplacian Pyramid 생성
+  lpA = [gpA[STEP-1]]  # n번쨰 추가된 Gaussian Image
+  for i in range(STEP-1, 0, -1):
+      GE = cv2.pyrUp(gpA[i])
+      L = cv2.subtract(gpA[i-1], GE)
+      lpA.append(L)
+      
+  # B 이미지에 대한 Laplacian Pyramid 생성
+  lpB = [gpB[STEP-1]]
+  for i in range(STEP-1, 0, -1):
+      GE = cv2.pyrUp(gpB[i])
+      L = cv2.subtract(gpB[i-1], GE)
+      lpB.append(L)
+     
+      
+  # 4단계
+  # Laplacian Pyramid를 누적으로 좌측과 우측으로 재결합
+  LS = []
+  for la, lb in zip(lpA, lpB):
+      rows, cols, dpt = la.shape
+      ls = np.hstack((la[:,0:int(cols/2)], lb[:,int(cols/2):]))
+      LS.append(ls)
+      
+      
+  # 5단계
+  ls_ = LS[0] # 좌측과 우측이 합쳐진 가장 작은 이미지
+  for i in range(1, STEP):
+       ls_ = cv2.pyrUp(ls_)    # Up scale
+       ls_ = cv2.add(ls_, LS[i]) # Up Scale된 이미지에 외곽서늘 추가하여 선명한 이미지로 생성
+      
+  # 원본 이미지를 그대로 붙인 경우
+  real = np.hstack((A[:, :int(cols/2)], B[:, int(cols/2):]))
+  
+  cv2.imshow('real', real)
+  cv2.imshow('blending', ls_)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  
+  ```
+
+
+
+
+
+### Image Contours(이미지 윤곽)
+
+- 목표
+  - Contours에 대해서 알 수 있다.
+  - cv2.findContours(), cv2.drawContours() 함수에 대해서 알 수 있다.
+- **Contours**
+  - 
 
 
 
