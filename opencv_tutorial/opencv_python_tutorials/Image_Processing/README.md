@@ -951,10 +951,94 @@
 ### Image Contours(이미지 윤곽)
 
 - 목표
+
   - Contours에 대해서 알 수 있다.
   - cv2.findContours(), cv2.drawContours() 함수에 대해서 알 수 있다.
+
 - **Contours**
-  - 
+
+  - Contours란 동일한 색 또는 동일한 강도를 가지고 있는 영역의 경계선을 연결한 선(ex; 등고선)
+  - 대상의 외형을 파악하는데 유용하게 사용이 됨
+  - 정확도를 높이기 위해서 Binary Image를 사용함.
+    - threshold나 canny edge를 선처리로 수행함
+  - cv2.findContours() 함수는 원본 이미지를 직접 수정하기 때문에, 원본 이미지를 보존하려면 Copy해서 사용해야 함
+  - OpenCV에서는 contours를 찾는 것은 검은색 배경에서 하얀색 대상을 찾는 것과 같음
+    - 대상은 흰색, 배경은 검은색으로 해야 함
+
+- **Find & Draw Contours**
+
+  - OpenCV에서 contours를 찾고, 그리기 위해서 2개의 함수를 사용함
+
+  - `cv2.findContours(image, mode, method[, contours[, hierarchy[, offset]]]) -> image, contours, hierarchy`
+
+    - image - 8-bit single-channel image. binary image.
+
+    - mode - contours를 찾는 방법
+
+      - cv2.RETR_EXTERNAL : contours line 중 가장 바깥쪽 Line만 찾음
+
+      - cv2.RETR_LIST : 모든 contours line을 찾지만, hierachy 관계를 구성하지 않음
+
+      - cv2.RETR_CCOMP : 모든 contours line을 찾으며, hierachy 관계는 2-level로 구성함.
+
+      - cv2.RETR_TREE : 모든 contours line을 찾으며, 모든 hierachy 관계를 구성함
+
+    - method - contours를 찾을 때 사용하는 근사치 방법
+
+      - cv2.CHAIN_APPROX_NONE : 모든 contours point를 저장
+      - cv2.CHAIN_APPROX_SIMPLE : contours line을 그릴 수 있는 point만 저장(ex; 사각형이면 4개 point)
+      - cv2.CHAIN_APPROX_TC89_L1 : contours point를 찾는 algorithn
+      - cv2.CHAIN_APPROX_TC89_KCOS : contours point를 찾는 algorithm
+
+  - `cv2.drawContours(image, contours, contourIdx, color[, thickness[, lineType[, hierarchy[, maxLevel[, offset]]]]]) -> dst`
+
+    - image - 원본 이미지
+    - contours - contours 정보
+    - contourIdx - contours list type에서 몇 번째 contours line을 그릴 것인지. -1이면 전체
+    - color - contours line color
+    - thickness - contours line의 두께. 음수이면 contours line의 내부를 채움
+
+  - 예제
+
+  ```python
+  import cv2
+  
+  def nothing(x):
+      pass
+  
+  img = cv2.imread('img/apple.jpg')
+  
+  # 사이즈 조정
+  h, w = img.shape[:2]
+  r = 400/w
+  dim = (int(r*w), int(r*h))
+  img = cv2.resize(img, dim)
+  
+  cv2.namedWindow('canny')
+  cv2.createTrackbar('K', 'canny', 0, 255, nothing)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xFF == 27:
+          break
+      k = cv2.getTrackbarPos('K', 'canny')
+      
+      canny = cv2.Canny(img, k, 3*k)
+  
+      image_external, contours_external, hierachy = cv2.findContours(canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+      image_tree, contours_tree, hierachy = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+      image_external = cv2.drawContours(img.copy(), contours_external, -1, (0, 255, 0), 3)
+      image_tree = cv2.drawContours(img.copy(), contours_tree, -1, (0, 255, 0), 3)    
+      cv2.imshow('original', img)
+      cv2.imshow('canny', canny)
+      cv2.imshow('contours_external', image_external)
+      cv2.imshow('contours_tree', image_tree)
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+![contours_result](img/contours_result.png)
 
 
 
