@@ -19,7 +19,7 @@ dim = (int(r*w), int(r*h))
 img = cv2.resize(img, dim)
 
 cv2.namedWindow('canny')
-cv2.createTrackbar('K', 'canny', 0, 255, nothing)
+cv2.createTrackbar('K', 'canny', 80, 255, nothing)
 
 while(1):
     if cv2.waitKey(1) & 0xFF == 27:

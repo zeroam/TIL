@@ -1044,6 +1044,10 @@
 
 ### Contour Feature
 
+- 목표
+  - Contours의 특징(영역, 중심점, bounding box 등)을 찾을 수 있음
+  - Contours 특징을 찾는 다양한 함수에 대해서 알 수 있음
+
 
 
 ### Contour Property
