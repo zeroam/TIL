@@ -1044,9 +1044,256 @@
 
 ### Contour Feature
 
+- contour_feature.py
+
 - 목표
   - Contours의 특징(영역, 중심점, bounding box 등)을 찾을 수 있음
   - Contours 특징을 찾는 다양한 함수에 대해서 알 수 있음
+
+- **Moments**
+
+  - Image Moment는 대상을 구분할 수 있는 특징을 의미
+  - 특징으로는 Area, Perimeter, 중심점 등이 있음
+  - Image Moments는 대상을 구분한 후, 다른 대상과 구분하기 위해 대상을 설명(describe)하는 자료로 사용됨
+
+  ```python
+  import cv2
+  
+  img = cv2.imread('img/tetris_blocks.png')
+  imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
+  ret, thresh = cv2.threshold(imgray, 225, 255, 0)
+  
+  image, contours, hierachy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  # 첫번째 contours의 moment 특징 추출
+  cnt = contours[0]
+  M = cv2.moments(cnt)
+  
+  # contours의 특징을 찾을 수 있는 기본 정보
+  print('contours 기본정보:', M.items())
+  
+  # Contour Area : contour 면적
+  print('contour 면적:', cv2.contourArea(cnt))
+  
+  # Contour Perimeter : contour의 둘레 길이
+  print('폐곡선 도형을 만들어 둘레 길이:', cv2.arcLength(cnt, True))
+  print('시작점, 끝점을 연결하지 않고 둘레 길이:', cv2.arcLength(cnt, False))
+  
+  ```
+
+- **Contour Approximation**
+
+  - cv2.findContours() 함수에 의해서 찾은 contours line은 각각의 contours point를 가지고 있음
+    - 이 Point를 연결하여 Line을 그리게 됨
+    - 이 Point의 수를 줄여 근사한 line을 그릴 때 사용되는 방법
+  - point의 수를 줄이는데 사용되는 방식은 Douglas-Peucker algorithm
+  - 근사치를 찾는데 사용되는 함수는 cv2.approxPolyDP()
+  - `cv2.approxPolyDP(curve, epsilon, closed[, approxCurve]) -> approxCurve`
+    - curve - contours point array
+    - epsilon - original curve와 근사치의 최대거리. 최대거리가 클 수록 더 먼 곳의 Point까지 고려하기 때문에 Point수가 줄어듬
+    - closed - 폐곡선 여부
+
+  ```python
+  
+  import cv2
+  
+  def nothing(x):
+      pass
+  
+  img_origin = cv2.imread('img/star.png')
+  
+  cv2.namedWindow('canny')
+  cv2.createTrackbar('C', 'canny', 1, 255, nothing)
+  cv2.namedWindow('approximation')
+  cv2.createTrackbar('A', 'approximation', 0, 100, nothing)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xff == 27:
+          break
+      c = cv2.getTrackbarPos('C', 'canny')
+      canny = cv2.Canny(img_origin, c, 3*c)
+      
+      img = img_origin.copy()
+      img1 = img_origin.copy()
+      
+      a = cv2.getTrackbarPos('A', 'approximation')
+      image, contours, heirachy = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+      cnt = contours[0]
+      
+      epilson = a*0.01*cv2.arcLength(cnt, True)
+      approx = cv2.approxPolyDP(cnt, epilson, True)
+      
+      cv2.drawContours(img, [cnt] , 0, (0,255, 0), 3)
+      cv2.drawContours(img1, [approx], 0, (0, 255, 0), 3)
+      
+      cv2.imshow('canny', canny)
+      cv2.imshow('original', img)
+      cv2.imshow('approximation', img1)
+      
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+![contour_approximation_result](img/contour_approximation_result.png)
+
+
+
+- **Convex Hull**
+
+  - Convex Hull이란 contours point를 모두 포함하는 볼록한 외곽선을 의미함
+    - convexity defect : contours와 hull과의 최대차이
+
+  ```python
+  ![convex_hull_result](C:\Users\lodics\Documents\GitHub\TIL\opencv_tutorial\opencv_python_tutorials\Image_Processing\img\convex_hull_result.png)import cv2
+  
+  def nothing(x):
+      pass
+  
+  img_origin = cv2.imread('img/balloon.png')
+  canny = cv2.Canny(img_origin, 30, 90)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xff == 27:
+          break
+      
+      img = img_origin.copy()
+      img1 = img_origin.copy()
+      
+      image, contours, heirachy = cv2.findContours(canny, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+      cnt = contours[0]
+      
+      hull = cv2.convexHull(cnt)
+      
+      cv2.drawContours(img, [cnt] , 0, (0,255, 0), 3)
+      cv2.drawContours(img1, [hull], 0, (0, 255, 0), 3)
+      
+      cv2.imshow('original', img)
+      cv2.imshow('convex hull', img1)
+      
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+![convex_hull_result](img/convex_hull_result.png)
+
+
+
+- **Checking Convexity**
+
+  - cv2.isContourConvex() 함수는 contour가 convex인지 아닌지 판단하여 True 혹은 False를 리턴함
+
+  ```python
+  # Checking Convexity
+  print(cv2.isContourConvex(cnt)) # 풍선 모양 : False
+  print(cv2.isContourConvex(hull)) # 외곽선 : True
+  ```
+
+- **여러 contours 그리기**
+
+  - Bounding Rectangle
+
+    - 사각형 그리기
+
+    1. Straight Bounding Rectangle : 대상의 Rotation은 무시한 사각형 모양
+    2. Rotated Rectangle : 대상을 모두 포함하면서, 최소한의 영역을 차지하는 사각형
+
+  ```python
+  # 1. Straight Bounding Rectangle
+  x,y,w,h = cv2.boundingRect(cnt)
+  img = cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),2)
+  
+  # 2. Rotated Rectangle
+  rect = cv2.minAreaRect(cnt)
+  box = cv2.boxPoints(rect)
+  box = np.int0(box)
+  im = cv2.drawContours(im,[box],0,(0,0,255),2)
+  
+  ```
+
+  
+
+  - Minimum Enclosing Circle
+    - Contours 라인을 완전히 포함하는 원 중 가장 작은 원
+
+  ```python
+  # Minimum Enclosing Circle
+  (x,y),radius = cv2.minEnclosingCircle(cnt)
+  center = (int(x),int(y))
+  radius = int(radius)
+  img = cv2.circle(img,center,radius,(0,255,0),2)
+  ```
+
+  
+
+  - Fitting an Ellipse
+    - Contours Line을 둘러싸는 타원
+
+  ```python
+  # Fitting an Ellipse
+  ellipse = cv2.fitEllipse(cnt)
+  im = cv2.ellipse(im,ellipse,(0,255,0),2)
+  ```
+
+  - 예제
+
+  ```python
+  
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/lightning.png')
+  img1 = img.copy()
+  
+  imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  ret, thresh = cv2.threshold(imgray, 127, 255, 0)
+  
+  image, contours, hierachy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  cnt = contours[1]
+  
+  # Straight Rectangle
+  x, y, w, h = cv2.boundingRect(cnt)
+  img1 = cv2.rectangle(img1, (x,y), (x+w, y+h), (0, 255, 0), 3)   # green
+  
+  # Rotated Rectangle
+  rect = cv2.minAreaRect(cnt)
+  box = cv2.boxPoints(rect)
+  box = np.int0(box)
+  img1 = cv2.drawContours(img1, [box], 0, (0, 0, 255), 3)         # blue
+  
+  # Minimum Enclosing Circle
+  (x,y), radius = cv2.minEnclosingCircle(cnt)
+  center = (int(x), int(y))
+  radius = int(radius)
+  img1 = cv2.circle(img1, center, radius, (255, 255, 0), 3)       # yellow
+  
+  # Fitting an Ellipse
+  ellipse = cv2.fitEllipse(cnt)
+  img1 = cv2.ellipse(img1, ellipse, (255, 0, 0), 3)               # Red
+  
+  titles = ['Original', 'Result']
+  images = [img, img1]
+  
+  plt.figure(figsize=(8, 4))
+  
+  for i in range(2):
+      plt.subplot(1, 2, i+1), plt.title(titles[i]), plt.imshow(images[i])
+      plt.xticks([]), plt.yticks([])
+      
+  plt.show()
+  ```
+
+  
+
+![drawing_contours_result](img/drawing_contours_result.png)
+
+
 
 
 
