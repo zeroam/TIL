@@ -1408,7 +1408,62 @@
 ### Contours Hierarchy
 
 - 목표
+
   - Contours의 Hierachy 구조에 대해서 알 수 있다
+
+- **Hierarchy**
+
+  - Image에는 여러개의 Contours가 존재하고, 그 사이에는 서로 포함하는 관계가 존재함 -> 그 관계를 Contours Hierarchy라고 함
+    - 이전, 이후, Parent, Child 관계를 파악할 수 있음
+    - `cv2.findContours()`에 Contour Retrieval Mode 값에 의해서 결정이 됨
+
+  ```python
+  import cv2
+  import random
+  
+  img = cv2.imread('img/contour_hierarchy.png')
+  
+  imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  ret, thresh = cv2.threshold(imgray, 125, 255, 0)
+  
+  image, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  cv2.imshow('original', img)
+  cv2.waitKey(0)
+  
+  for cnt in contours:
+      # Random Color 생성
+      b = random.randint(1, 255)
+      g = random.randint(1, 255)
+      r = random.randint(1, 255)
+      
+      img = cv2.drawContours(img, [cnt], -1, (b,g,r), 2)
+      cv2.imshow('image', img)
+      cv2.waitKey(0)
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+![contour_hierarchy_result](img/contour_hierarchy_result.png)
+
+
+
+- **RETR_LIST**
+  - hierarchy의 shape는 (1, x, 4)의 형태
+    - 3번째 차원의 4개의 값이 hierarchy를 표현함
+    - (next, prev, child, parent)
+  - RETR_LIST는 선/후 관계만을 표시하고 parent/child 관계를 표혀하지 않는 mode
+- **RETR_EXTERNAL**
+  - 가장 바깥쪽(다른 Contour Line에 포함되지 않는) contour만을 return하는 모드
+  - parent/child는 구성하지 않음
+- **RETR_CCOMP**
+  - hierarchy를 2-Level로 표현
+    - 바깥쪽(외곽선)은 모두 1-Level
+    - 안에 포함된 것은 2-Level
+- **RETR_TREE**
+  - hierarchy를 완전하게 표현하는 mode
 
 
 
