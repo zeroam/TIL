@@ -1583,7 +1583,9 @@
 
 
 
-### 히스토그램 균일화
+### 히스토그램 균일화(Histogram Equalization)
+
+
 
 
 
