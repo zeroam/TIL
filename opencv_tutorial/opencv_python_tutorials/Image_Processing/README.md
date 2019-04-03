@@ -1471,6 +1471,116 @@
 
 ### 히스토그램
 
+- histogram.py
+
+- 목표
+  - OpenCV를 이용하여 Histogram을 찾을 수 있다.
+  - OpenCV와 Matplotlib를 이용하여 Histogram을 표현할 수 있다.
+  - cv2.calcHist() 와 np.histogram() 함수를 사용할 수 있다.
+- **Histogram**
+  - Histogram은 이미지의 밝기 분포를 그래프로 표현한 방식
+  - 히스토그램을 이용하면 이미지 전체의 밝기 분포와 채도(색의 밝고 어두움)을 알 수 있음
+    - X축 -> 색의 강도(0~255)
+    - Y축 -> X축에 해당하는 색의 갯수
+
+![histogram](img/histogram.jpg)
+
+
+
+- **히스토그램 찾기**
+
+  - BINS
+    - 히스토그램 그래프의 X축의 간격(0~255의 경우 256)
+    - OpenCV에서는 histSize라고 표현
+  - DIMS
+    - 이미지에서 조사하고자 하는 값
+    - 빛의 강도를 조사할 것인지, RGB 값을 조사할 것인지 결정
+  - RANGE
+    - 측정하고자하는 값의 범위
+    - X축의 from~to로 이해할 수 있음
+
+- **Histogram in OpenCV**
+
+  - `cv2.calcHist(images, channels, mask, hitSize, ranges[, hist[, accumulate]])`
+    - image - 분석대상 이미지(uint8 or float32 type). Array 형태
+    - channel - 분석 채널(X축의 대상). 이미지가 grayscale이면 [0], color이미지이면 [0],[1], 또는 [2] (0: Blue, 1: Green, 2: Red)
+    - mask - 이미지의 분석 영역. None이면 전체 영역
+    - hitSize - BINS값 [256]
+    - ranges - Range 값 [0, 256]
+  - 2개 이미지를 Grayscale로 읽어 빛의 세기 분포를 보여주는 예제
+    - Red Line 이미지는 전체적으로 어둡기 떄문에 히스토그램에서 좌측의 분포가 높음
+    - Green Line 이미지는 전체적으로 밝기 때문에 오른쪽의 분포가 높음
+
+  ```python
+  
+  import cv2
+  from matplotlib import pyplot as plt
+  
+  img1 = cv2.imread('img/flower1.jpg', 0)
+  img2 = cv2.imread('img/flower2.jpg', 0)
+  
+  hist1 = cv2.calcHist([img1], [0], None, [256], [0,256])
+  hist2 = cv2.calcHist([img2], [0], None, [256], [0,256])
+  
+  plt.figure(figsize=[8,6])
+  plt.subplot(221), plt.imshow(img1, 'gray'), plt.title('Red Line')
+  plt.subplot(222), plt.imshow(img2, 'gray'), plt.title('Green Line')
+  plt.subplot(223), plt.plot(hist1, color='r'), plt.plot(hist2, color='g')
+  plt.xlim([0,256])
+  plt.show()
+  ```
+
+  
+
+![histogram_result](img/histogram_result.png)
+
+
+
+- **Mask를 적용한 히스토그램**
+
+  - 이미지의 특정 영역의 히스토그램을 분석하기 위해서 mask를 적용할 수 있음
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/hand.jpg')
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  
+  # mask 생성
+  mask = np.zeros(img.shape[:2], np.uint8)
+  cv2.rectangle(mask, (150, 100), (450, 350), (255, 255, 255), -1)
+  
+  # 이미지에 mask가 적용된 결과
+  masked_img = cv2.bitwise_and(img, img, mask=mask)
+  
+  # 원본 이미지의 히스토그램
+  hist_full = cv2.calcHist([img], [1], None, [256], [0,256])
+  
+  # mask를 적용한 히스토그램
+  hist_mask = cv2.calcHist([img], [1], mask, [256], [0,256])
+  
+  plt.figure(figsize=(8,6))
+  
+  plt.subplot(221), plt.imshow(img, 'gray'), plt.title('Original Image')
+  plt.subplot(222), plt.imshow(mask, 'gray'), plt.title('Mask')
+  plt.subplot(223), plt.imshow(masked_img, 'gray'), plt.title('Masked Image')
+  
+  # red는 원본 이미지 히스토그램, blue는 mask 적용된 히스토그램
+  plt.subplot(224), plt.title('Histogram')
+  plt.plot(hist_full, color='r'), plt.plot(hist_mask, color='b')
+  plt.xlim([0, 256])
+  
+  plt.show()
+  ```
+
+
+
+![histogram_mask_result](img/histogram_mask_result.png)
+
+
+
 
 
 ### 히스토그램 균일화
