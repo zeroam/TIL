@@ -1979,3 +1979,154 @@
 
 ### 허프 변환
 
+- hough_line_transform.py
+
+- 목표
+
+  - 허프 변환에 대해서 알 수 있다.
+  - 허프 변환을 이용하여 이미지의 Line을 찾을 수 있다.
+  - 허프 변환에서 사용하는 cv2.HoughLines(), cv2.HoughLinesP() 함수에 대해서 알 수 있다.
+
+- **Theory**
+
+  - 허프변환은 이미지에서 모양을 찾는 가장 유명한 방법
+  - 이 방법을 이용하면 이미지의 형태를 찾거나, 누락되거나 꺠진 영역을 복원할 수 있음
+  - 기본적으로 허프변환의 직선의 방정식을 이용함
+    - 하나의 점을 지나는 무수한 직선의 방정식은 y=mx+c로 표현
+    - 이것을 삼각함수를 이용하여 변형하면 r = xcos@ + ysin@ 으로 표현할 수 있음
+
+- **OpenCV를 활용한 허프 변환**
+
+  - `cv2.HoughLines(image, rho, theta, threshold[, lines[, srn[, stn[, min_theta[, max_theta]]]]]) -> lines`
+    - image - 8bit, single-channel binary image, canny edge를 선 전용
+    - rho - r 값의 범위(0~1 실수)
+    - theta -  𝜃값의 범위(0~180 정수)
+    - threshold - 만나는 점의 기준, 숫자가 작으면 많은 선이 검출되지만 정확도가 떨어지고, 숫자가 크면 정확도가 올라감
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  def nothing(x):
+      pass
+  
+  img = cv2.imread('img/chessboard2.jpg')
+  img = cv2.resize(img, (800, 800))
+  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
+  
+  cv2.namedWindow('image')
+  cv2.createTrackbar('threshold', 'image', 200, 400, nothing)
+  cv2.namedWindow('canny')
+  cv2.createTrackbar('canny', 'canny', 50, 255, nothing)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xFF == 27:
+          break
+      img_copy = img.copy()
+      threshold = cv2.getTrackbarPos('threshold', 'image')
+      c = cv2.getTrackbarPos('canny', 'canny')
+      if threshold < 50:
+          threshold = 50
+  
+      edges = cv2.Canny(gray, c, 3*c, apertureSize=3)
+      lines = cv2.HoughLines(edges, 1, np.pi/180, threshold)
+      
+      for line in lines:
+          for rho, theta in line:
+              a = np.cos(theta)
+              b = np.sin(theta)
+              x0 = a*rho
+              y0 = b*rho
+              x1 = int(x0 + 1000*(-b))
+              y1 = int(y0 + 1000*(a))
+              x2 = int(x0 - 1000*(-b))
+              y2 = int(y0 - 1000*(a))
+          
+          cv2.line(img_copy, (x1, y1), (x2, y2), (0, 0, 255), 2)
+      
+      cv2.imshow('canny', edges)
+      cv2.imshow('image', img_copy)
+  
+  cv2.destroyAllWindows()
+  ```
+
+  - threshold 값이 올라갈 수록 선은 줄어듦
+
+  ![hough_line_transform_result](img/hough_line_transform_result.png)
+
+
+
+
+
+- 확률 허프 변환
+
+  - 허프 변환은 모든 점에 대해서 계산을 하기 때문에 시간이 많이 소요됨
+  - 확률 허프 변환(Probabilistic Hough Transform)은 이전 허프변환을 최적화 한 것
+    - 모든 점을 대상으로 하는 것이 아니라 임의의 점을 이용하여 직선을 찾는 것(단, 임계값을 작게 해야 함)
+  - cv2.HoughLinesP() 함수를 이용
+    - 선의 시작점과 끝점을 Return 해주기 때문에 쉽게 화면에 표현할 수 있음
+  - `cv2.HoughLinesP(image, rho, threshold, minLineLength, maxLineGap) -> lines`
+    - image - 8bit, single-channel binary image, canny edge를 선 적용
+    - rho - r 값의 범위(0~1 실수)
+    - theta - 𝜃 값의 범위(0 ~ 180 정수)
+    - threshold - 만나는 점의 기준, 숫자가 작으면 많은 선이 검출되지만 정확도가 떨어지고, 숫자가 크면 정확도가 올라감
+    - minLineLength - 선의 최소 길이. 이 값보다 작으면 reject
+    - maxLineGap - 선과 선사이의 최대 허용 간격. 이 값보다 작으면 reject
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  def nothing(x):
+      pass
+  
+  img = cv2.imread('img/building.jpg')
+  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  edges = cv2.Canny(img, 50, 150, apertureSize=3)
+  
+  cv2.namedWindow('image')
+  cv2.createTrackbar('threshold', 'image', 100, 255, nothing)
+  cv2.createTrackbar('min_length', 'image', 100, 500, nothing)
+  cv2.createTrackbar('max_gap', 'image', 0, 100, nothing)
+  
+  while(1):
+      if cv2.waitKey(1) & 0xFF == 27:
+          break
+      img_copy = img.copy()
+      threshold = cv2.getTrackbarPos('threshold', 'image')
+      min_length = cv2.getTrackbarPos('min_length', 'image')
+      max_gap = cv2.getTrackbarPos('max_gap', 'image')
+      
+      lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold, min_length, max_gap)
+      for line in lines:
+          for x1,y1,x2,y2 in line:
+              cv2.line(img_copy, (x1,y1), (x2,y2), (0,255,0), 2)
+              
+      cv2.imshow('image', img_copy)
+      
+  cv2.destroyAllWindows()
+  ```
+
+  
+
+![hough_line_transform_result2](img/hough_line_transform_result2.png)
+
+
+
+
+
+### Hough Circle Transform
+
+
+
+### Watershed 알고리즘을 이용한 이미지 분할
+
+
+
+### k-Nearest Neighbour(kNN)
+
+
+
+### kNN을 이용한 숫자 인식
+
