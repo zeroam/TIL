@@ -1973,7 +1973,7 @@
 
 
 
-![matching_result](C:\Users\lodics\Documents\GitHub\TIL\opencv_tutorial\opencv_python_tutorials\Image_Processing\img\matching_result.jpg)
+![matching_result](img/matching_result.jpg)
 
 
 
