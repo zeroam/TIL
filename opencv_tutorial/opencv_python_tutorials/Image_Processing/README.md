@@ -2118,6 +2118,56 @@
 
 ### Hough Circle Transform
 
+- 목표
+
+  - 이미지에서 원을 찾을 수 있는 허프변환에 대해서 알 수 있다.
+  - cv2.HoughCircles() 함수에 대해서 알 수 있다.
+
+- Theory
+
+  - 원의 수학적 표현
+    - (x−x<sub>center</sub>)2+(y−y<sub>center</sub>)2=r2
+    - 이 것을 모든 점에 대해서 수행을 하게 되면 상당히 비효율적
+  - openCV에서는 가장자리에서 기울기를 측정하여 원을 그리는데 관련이 있는 점인지 확인할 수 있는 Hough Gradient Method를 사용함
+  - `cv2.HoughCircles(image, method, dp, minDist[, circles[, param1[, param2[, minRadius[, maxRadius]]]]]) -> circles`
+    - image - 8bit single-channel image, grayscale image
+    - method - 검출방법. 현재는 HOUGH_GRADIENT가 있음
+    - dp - dp=1이면 Input Image와 동일한 해상도
+    - minDist - 검출한 원의 중심과의 최소거리. 값이 작으면 원이 아닌 것들도 검출이 되고, 너무 크면 원을 놓칠 수 있음
+    - param1 - 내부적으로 사용하는 canny edge 검출기에 전달되는 Parameter
+    - param2 - 이 값이 작을 수록 오류가 높아짐, 크면 검출률이 낮아짐
+    - minRadius - 원의 최소 반지름
+    - maxRadius - 원의 최대 반지름
+
+  ```python
+  
+  import cv2
+  import numpy as np
+  
+  img = cv2.imread('img/logo.png')
+  img = cv2.medianBlur(img, 5)
+  img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
+  circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 1, 20,
+                             param1=50, param2=25, minRadius=0, maxRadius=0)
+  circles = np.uint(np.around(circles))
+  for i in circles[0,:]:
+      # draw the outer circle
+      cv2.circle(img, (i[0], i[1]), i[2], (0, 255, 0), 2)
+      # draw the center of the circle
+      cv2.circle(img, (i[0], i[1]), 2, (0, 0, 255), 3)
+      
+  cv2.imshow('detected circles', img)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+![hough_circle_result](img/hough_circle_result.png)
+
+
+
+
+
 
 
 ### Watershed 알고리즘을 이용한 이미지 분할
