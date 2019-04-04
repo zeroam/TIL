@@ -1585,19 +1585,395 @@
 
 ### 히스토그램 균일화(Histogram Equalization)
 
+- histogram_equlalization.py
 
+- 목표
+  - 히스토그램 균일화에 대해서 알 수 있고, 이것을 이용하여 이미지의 contrast를 향상시킬 수 있다.
+- **Theory**
+  - 이미지의 히스토그램이 특정영역에 너무 집중되어 있으면 contrast가 낮아 좋은 이미지라고 할 수 없음
+  - 전체 영역에 골고루 분포가 되어 있을 때 좋은 이미지라고 할 수 있음
+  - 아래 히스토그램처럼 좌측에 특정 영역에 집중되어 있는 부분을 오른쪽처럼 골고루 분포하도록 하는 작업을 Histogram Equalization 이라고 함
+    - 각 픽셀의 cumulative distribution function(cdf) 값을 구하고 Histogram Equalization 공식에 대입하여 0~255 사이의 값으로 변환
+    - 이렇게 새롭게 구해진 값으로 이미지를 구현하면 균일화된 이미지를 얻을 수 있음
+
+![image011](img/image011.png)
+
+
+
+- numpy를 이용하여 균일화 작업을 하는 예제
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/bld1.jpg')
+  
+  hist, bins = np.histogram(img.flatten(), 256, [0, 256])
+  
+  cdf = hist.cumsum()
+  
+  # cdf의 값이 0인 경우는 mask처리를 하여 계산에서 제외
+  # mask 처리가 되면 Numpy 계산에서 제외됨
+  # 아래는 cdf array에서 값이 0인 부분을 mask처리함
+  cdf_m = np.ma.masked_equal(cdf, 0)
+  
+  # Histogram Equalization 공식
+  cdf_m = (cdf_m - cdf_m.min())*255/(cdf_m.max()-cdf_m.min())
+  
+  # Mask 처리를 했던 부분을 다시 0으로 변환
+  cdf = np.ma.filled(cdf_m, 0).astype('uint8')
+  
+  img2 = cdf[img]
+  
+  plt.figure(figsize=(8,6))
+  plt.subplot(121), plt.imshow(img), plt.title('Original')
+  plt.subplot(122), plt.imshow(img2), plt.title('Equalization')
+  plt.show()
+  ```
+
+
+
+![bld1_result](img/bld1_result.png)
+
+
+
+- OpenCV에서는 함수로 간단하게 Equalization 처리를 할 수 있음
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/bld1.jpg', 0)
+  
+  # OpenCV의 Equalization 함수
+  img2 = cv2.equalizeHist(img)
+  
+  dst = np.hstack((img, img2))
+  cv2.imshow('img', dst)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+![bld1_result2](img/bld1_result2.png)
+
+
+
+- **CLAHE(Contrast Limited Adaptive Histogram Equalization)**
+  - 일반적인 이미지에는 밝은 부분과 어두운 부분이 섞여 있기 때문에 전체에 적용하는 것은 그렇게 유용하지 않음
+  - 아래 그림을 보면
+    - 주변의 어두운 부분은 균일화가 적용되어 밝아졌지만, 가운데 이미지는 너무 밝아져 경계선을 알아볼 수 없게 됨
+    - 이 문제를 해결하기 위해서 adaptive histogram equalization을 적용함
+      - 이미지를 작은 title 형태로 나누어 그 title 안에서 Equalization을 적용하는 방식
+      - 작은 영역이다 보니 작은 노이즈(극단적으로 어둡거나 밝은 영역)가 있으면 이것이 반영되어 원하는 결과를 얻을 수 없게됨
+      - 이 문제를 피하기 위해 contrast limit이라는 값을 적용하여 이 값을 넘어가는 경우는 그 영역은 다른 영역에 균일하게 배분하여 적용을 함
+
+![result03](img/result03.png)
+
+- CLAHE 반영
+
+  - 가운데 이미지의 윤곽선도 유지가 되면서 전체적인 contrast가 높아짐
+
+  ```python
+  #-*-coding:utf-8-*-
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  
+  img = cv2.imread('images/clahe.png',0);
+  
+  # contrast limit가 2이고 title의 size는 8X8
+  clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+  img2 = clahe.apply(img)
+  
+  img = cv2.resize(img,(400,400))
+  img2 = cv2.resize(img2,(400,400))
+  
+  dst = np.hstack((img, img2))
+  cv2.imshow('img',dst)
+  cv2.waitKey()
+  cv2.destroyAllWindows()
+  ```
+
+![result04](img/result04.png)
 
 
 
 ### 2D Histogram
 
+- 목표
+
+  - 2D Histogram을 찾아서 plot 형태로 그릴 수 있다.
+
+- Theory
+
+  - 지금까지의 Histogram은 1차원으로 grayscale 이미지의 pixel의 강도, 즉 빛의 세기를 분석한 결과
+  - 2D Histogram은 Color 이미지의 Hue(색상) & Saturation(채도)을 동시에 분석하는 방법
+
+- **적용**
+
+  - Hue와 Saturation으로 분석하기 때문에 대상 이미지를 HSV Format으로 변환을 해야 함
+  - 그 다음에 calHist()라는 OpenCV의 Histogram 분석 함수에 적용함
+  - `calHist([image, ] [channel, ]mask[, bins][, range])`
+    - image - HSV로 변환된 이미지
+    - channel - 0 -> Hue, 1-> Saturation
+    - bins - [180,256], 첫번째는 Hue, 두번째는 Saturation
+    - range - [0,180,0,256] - Hue(0~180), Saturation(0~256)
+
+  ```python
+  import cv2
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/2d_histogram.jpg')
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+  hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+  
+  hist = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0,180,0,256])
+  
+  plt.figure(figsize=(8,6))
+  plt.subplot(121), plt.imshow(img), plt.title('Original')
+  plt.subplot(122), plt.imshow(hist, interpolation='nearest'), plt.title('Hist')
+  plt.show()
+  ```
+
+
+
+![2d_histogram_result](img/2d_histogram_result.jpg)
+
 
 
 ### 푸리에 변환
 
+- fourier_transform.py
+
+- 목표
+
+  - Numpy와 OpenCV를 이용하여 푸리에 변환을 찾을 수 있다.
+  - 푸리에 변환을 이용하여 이미지를 변환할 수 있다.
+
+- **푸리에 변환**
+
+  - 푸리에 변환은 주파수를 분석하는데 사용되는 방법
+    - 주파수 : 시간의 흐름에 따른 진동하는 파동의 횟수
+    - 파동은 sin, cos의 삼각함수로 표현할 수 있는데, 이렇게 되면 시간축을 제거하고 파동의 전체적인 모습을 한눈에 볼 수 있게 됨
+  - 이미지도 파동으로 변환을 할 수가 있는데
+    - 고주파 : 주변 픽셀과 밝기 변환이 많은 곳 -> 경계선
+    - 저주파 : 변환이 적은 곳 -> 배경
+    - 고주파를 제거하면 경계선이 사라지고, 저주파를 제거하면 경계선만 남게됨
+  - 이미지 -> 푸리에 변환 -> 고주파 또는 저주파 제거 -> 다시 이미지 변환
+    - 경계 또는 배경만 남게 할 수 있음
+
+- **푸리에 변환 With Numpy**
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/messi.jpg', 0)
+  f = np.fft.fft2(img)
+  # 좌상단에 있는 저주파 영역을 중앙으로 옮김
+  fshift = np.fft.fftshift(f)
+  magnitude_spectrum = 20*np.log(np.abs(fshift))
+  
+  plt.figure(figsize=(8,6))
+  plt.subplot(121), plt.imshow(img, cmap='gray')
+  plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+  plt.subplot(122), plt.imshow(magnitude_spectrum, cmap='gray')
+  plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+  plt.show()
+  
+  """
+  주파수로 연산하기
+  """
+  rows, cols = img.shape
+  crow, ccol = int(rows/2), int(cols/2)   # 이미지의 중심 좌표
+  
+  d = 30
+  fshift[crow-d:crow+d, ccol-d:ccol+d] = 0
+  
+  # 푸리에 변환결과를 다시 이미지로 변환
+  f_ishift = np.fft.ifftshift(fshift)
+  img_back = np.fft.ifft2(f_ishift)
+  img_back = np.abs(img_back)
+  
+  plt.figure(figsize=(12, 6))
+  plt.subplot(131), plt.imshow(img, cmap='gray'), plt.title('Input Image'), plt.axis('off')
+  plt.subplot(132), plt.imshow(img_back, cmap='gray'), plt.title('Image after HPF'), plt.axis('off')
+  plt.subplot(133), plt.imshow(img_back), plt.title('Result in JET'), plt.axis('off')
+  
+  plt.show()
+  ```
+
+![fourier_result](img/fourier_result.png)
+
+
+
+![fourier_result2](img/fourier_result2.png)
+
+- **푸리에 변환 with OpenCV**
+
+  ```python
+  import numpy as np
+  import cv2
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/messi.jpg', 0)
+  
+  dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
+  dft_shift = np.fft.fftshift(dft)
+  
+  magnitude_spectrum = 20*np.log(cv2.magnitude(dft_shift[:,:,0], dft_shift[:,:,1]))
+  
+  plt.figure(figsize=(8,6))
+  plt.subplot(121), plt.imshow(img, cmap='gray'), plt.title('Input Image'), plt.axis('off')
+  plt.subplot(122), plt.imshow(magnitude_spectrum, cmap='gray'), plt.title('Magnitude Spectrum'), plt.axis('off')
+  plt.show()
+  
+  """
+  고주파 영역 제거 -> blur 효과
+  """
+  rows, cols = img.shape
+  crow, ccol = int(rows/2), int(cols/2)
+  
+  # create a mask first, center square is 1, remaining all zeros
+  # 아래는 d 사이즈의 사각형을 생성한 후, 사각형 바깥을 제거하는 형태
+  # 즉, 고주파 영역을 제거하게 됨
+  # d 값이 작을수록 사각형이 작고, 바깥영역(고주파 영역)이 많이 제거되기 때문에 이미지가 뭉개지고
+  # d 값이 클수록 사각형이 크고, 바깥영역(고주파 영역)이 적게 제거되기 떄문에 원래 이미지와 가까워
+  d = 30
+  mask = np.zeros((rows, cols, 2), np.uint8)
+  mask[crow-d:crow+d, ccol-d:ccol+d] = 1
+  
+  # apply mask and inverse DFT
+  fshift = dft_shift*mask
+  f_ishift = np.fft.ifftshift(fshift)
+  img_back = cv2.idft(f_ishift)
+  img_back = cv2.magnitude(img_back[:,:,0], img_back[:,:,1])
+  
+  plt.figure(figsize=(12, 6))
+  plt.subplot(121), plt.imshow(img, cmap='gray'), plt.title('Input Image'), plt.axis('off')
+  plt.subplot(122), plt.imshow(img_back, cmap='gray'), plt.title('Magnitude Spectrum'), plt.axis('off')
+  plt.show()
+  ```
+
+  
+
+![fourier_result3](img/fourier_result3.png)
+
+
+
+![fourier_result4](img/fourier_result4.png)
+
+
+
 
 
 ### 템플릿 매칭
+
+- template_matching.py
+
+- 목표
+
+  - Template Matching을 이용하여 이미지를 찾을 수 있다.
+  - cv2.matchTemplate(), cv2.minMaxLoc() 함수에 대해서 알 수 있다.
+
+- 개요
+
+  - 템플릿 매칭은 원본 이미지에서 특정 이미지를 찾는 방법
+  - 이때 사용하는 함수가 cv2.matchTemplate() 함수
+    - 원본 이미지에서 템플릿 이미지를 좌측상단부터 미끄러지듯이 우측으로 이동하면서 계속 비교를 하는 것
+    - Return 되는 값은 Gray이미지로 원본의 픽셀이 템플릿 이미지와 유사한 정도를 표현함
+      - 강도는 매칭 방법에 따라 다름
+
+- Template Matching in OpenCV
+
+  ```python
+  import cv2
+  from matplotlib import pyplot as plt
+  
+  img = cv2.imread('img/messi.jpg', 0)
+  img2 = img.copy()
+  template = cv2.imread('img/messi_face.jpg', 0)
+  w, h = template.shape[::1]
+  
+  # All the 6 methods for comparision in a list
+  methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR',
+              'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
+  
+  for meth in methods:
+      img = img2.copy()
+      method = eval(meth)
+      
+      # Apply template Matching
+      res = cv2.matchTemplate(img, template, method)
+      min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+      
+      # If the method is TM_SQDIFF or TM_SQDIFF_NORMAL, take minimum
+      if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+          top_left = min_loc
+      else:
+          top_left = max_loc
+      bottom_right = (top_left[0] + w, top_left[1] + h)
+      
+      cv2.rectangle(img, top_left, bottom_right, 255, 2)
+      
+      plt.figure(figsize=(8,6))
+      plt.subplot(121), plt.imshow(res, cmap='gray')
+      plt.title('Matching Result'), plt.axis('off')
+      plt.subplot(122), plt.imshow(img, cmap='gray')
+      plt.title('Detected Point'), plt.axis('off')
+      plt.suptitle(meth)
+      
+      plt.show()
+  ```
+
+  
+
+![tm_ccoeff_result](img/tm_ccoeff_result.png)
+
+![tm_ccoeff_normed_result](img/tm_ccoeff_normed_result.png)
+
+![tm_ccorr_result](img/tm_ccorr_result.png)
+
+![tm_ccorr_normed_result](img/tm_ccorr_normed_result.png)
+
+![tm_sqdiff_result](img/tm_sqdiff_result.png)
+
+![tm_sqdiff_normed_result](img/tm_sqdiff_normed_result.png)
+
+
+
+- **Template Matching with Multiple Objects**
+
+  ```python
+  import cv2
+  import numpy as np
+  
+  img_rgb = cv2.imread('img/matching.jpg')
+  img_copy = img_rgb.copy()
+  img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
+  template = cv2.imread('img/matching_template.jpg', 0)
+  w, h = template.shape[::-1]
+  
+  res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
+  threshold = 0.8
+  loc = np.where(res >= threshold)
+  for pt in zip(*loc[::-1]):
+      cv2.rectangle(img_copy, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+      
+  img = np.hstack((img_rgb, img_copy))
+  img = cv2.resize(img, (1600, 800))
+  cv2.imshow('image', img)
+  cv2.waitKey(0)
+  cv2.destroyAllWindows()
+  ```
+
+
+
+![matching_result](C:\Users\lodics\Documents\GitHub\TIL\opencv_tutorial\opencv_python_tutorials\Image_Processing\img\matching_result.jpg)
 
 
 
