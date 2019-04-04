@@ -2243,7 +2243,63 @@
 
 ### k-Nearest Neighbour(kNN)
 
+- 목표
+
+  - k-Nearest Neighbour(kNN) 알고리즘에 대해서 알 수 있다.
+
+- Theory
+
+  - Machine Learning에는 지도 학습(Supervised Learning)과 비지도학습(Unsupervised Learning)가 있음
+    - 지도학습 : 훈련용 Data를 만들고, 사람이 답을 알려줌 -> 훈련용으로 제시되지 않은 Data에 대해서도 값을 찾아냄
+    - 비지도학습 : Data에 답을 제시하지 않고 컴퓨터가 스스로 답을 찾아내는 방법
+  - kNN은 지도학습 중 단순한 알고리즘을 이용한 방법
+
+- 예제
+
+  - 0~100의 좌표에 25개의 Random한 점을  생성(Red : 0, Blue : 1)
+  - 임의의 초록색 점을 생성하고 그 값이 Red(0)인지 Blue(1)인지 판단하는 예제
+
+  ```python
+  import cv2
+  import numpy as np
+  from matplotlib import pyplot as plt
+  
+  train_data = np.random.randint(0, 100, (25,2)).astype(np.float32)
+  response = np.random.randint(0, 2, (25, 1)).astype(np.float32)
+  
+  red = train_data[response.ravel() == 0] # red는 0 class로 분류
+  plt.scatter(red[:, 0], red[:, 1], 80, 'r', '^')
+  
+  blue = train_data[response.ravel() == 1] # blue는 1 class로 분류
+  plt.scatter(blue[:,0], blue[:,1], 80, 'b', 's')
+  
+  newcomer = np.random.randint(0, 100, (1,2)).astype(np.float32)
+  plt.scatter(newcomer[:, 0], newcomer[:, 1], 80, 'g', 'o')
+  
+  knn = cv2.ml.KNearest_create()
+  knn.train(train_data, cv2.ml.ROW_SAMPLE, response)
+  ret, results, neighbours, dist = knn.findNearest(newcomer, 3) # k값을 3으로 설정
+  
+  print('result: ', results)
+  print('neighbours :', neighbours)
+  print('distance :', dist)
+  
+  plt.show()
+  
+  ```
+
+![kNN_result](img/kNN_result.png)
+
+```bash
+result:  [[1.]]
+neighbours : [[1. 1. 0.]]
+distance : [[145. 180. 410.]]
+```
+
+
+
 
 
 ### kNN을 이용한 숫자 인식
 
+- num_rec.py
