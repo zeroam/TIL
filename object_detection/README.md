@@ -2,6 +2,8 @@
 
 ### 차량 탐지
 
+- [링크](<https://medium.com/machine-learning-world/tutorial-making-road-traffic-counting-app-based-on-computer-vision-and-opencv-166937911660>)
+
 - 딥러닝 이용 x
 - 자동차만 있다고 가정 했을 때 움직이는 물체에 대한 탐지
 
