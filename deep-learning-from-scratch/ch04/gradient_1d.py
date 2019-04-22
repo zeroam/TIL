@@ -30,6 +30,5 @@ if __name__ == "__main__":
     plt.plot(x, y2)
     plt.show()
 
-    print(numerical_diff(function_1, 5))    # 0.1999999999990898
-    print(numerical_diff(function_1, 10))   # 0.2999999999986347
-
+    #print(numerical_diff(function_1, 5))    # 0.1999999999990898
+    #print(numerical_diff(function_1, 10))   # 0.2999999999986347
