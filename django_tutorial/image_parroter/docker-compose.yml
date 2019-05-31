@@ -1,20 +1,38 @@
 version: '3'
 
 services:
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
   redis:
     image: "redis:alpine"
   web:
     build: .
+    command: sh web.sh
     ports:
       - "8000:8000"
     volumes:
       - ./media:/src/media
     depends_on:
       - redis
+      - db
   celery:
     build: .
-    command: celery worker -A image_parroter --loglevel=info
+    command: sh celery.sh
     volumes:
       - ./media:/src/media
     depends_on:
       - redis
+      - db
+  celery-beat:
+    build: .
+    command: sh celerybit.sh
+    volumes:
+      - ./media:/src/media
+    depends_on:
+      - redis
+      - db
+    
+volumes:
+    postgres_data:

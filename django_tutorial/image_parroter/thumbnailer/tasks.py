@@ -34,3 +34,13 @@ def make_thumbnails(file_path, thumbnails=[]):
         print(e)
 
     return results
+
+
+@shared_task
+def print_hello():
+    print('hello')
+
+
+@shared_task
+def print_bye():
+    print('bye')
