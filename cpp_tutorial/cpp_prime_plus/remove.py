@@ -4,7 +4,7 @@ import re
 
 for folder, subfolders, filenames in os.walk('.'):
     for subfolder in subfolders:
-        if subfolder == 'Debug':
+        if subfolder in ['Debug', 'x64']:
             # Debug 폴더는 제거
             shutil.rmtree(os.path.join(folder, subfolder))
 
