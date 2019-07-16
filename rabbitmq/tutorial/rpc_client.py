@@ -39,8 +39,8 @@ class FibonacciRpcClient(object):
         )
         count = 0
         while self.response is None:
-            if (count >= 50):
-                break
+            if (count >= 100):
+                return "fail to get response"
             self.connection.process_data_events()
             time.sleep(0.1)
             count += 1
@@ -51,10 +51,11 @@ fibonacci_rpc = FibonacciRpcClient()
 
 if len(sys.argv) != 2 or not sys.argv[1].isdigit():
     print('Usages: python %s [number]' % sys.argv[0])
-    #response = fibonacci_rpc.call(30)
     sys.exit(1)
 
 n = int(sys.argv[1])
 print(" [x] Requesting fib(%d)" % n)
 response = fibonacci_rpc.call(n)
+if response == -1:
+    response = 'response give a error'
 print(" [.] Got %r" % response)

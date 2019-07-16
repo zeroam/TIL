@@ -19,7 +19,10 @@ def on_request(ch, method, props, body):
     n = int(body)
 
     print(" [.] fib(%s)" % n)
-    response = fib(n)
+    if n > 35:
+        response = -1 
+    else:
+        response = fib(n)
 
     ch.basic_publish(exchange='',
         routing_key=props.reply_to,
