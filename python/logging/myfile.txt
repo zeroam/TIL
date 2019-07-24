@@ -1,0 +1,4 @@
+hello world
+this file has 2 words
+this file has 6 words
+this file has 10 words

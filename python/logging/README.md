@@ -1,0 +1,1 @@
+- [참조링크](https://www.datadoghq.com/blog/python-logging-best-practices/)
