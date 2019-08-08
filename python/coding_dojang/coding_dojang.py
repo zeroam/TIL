@@ -91,3 +91,17 @@ for i in range(20):
     co.send(i)
 
 print(co.throw(RuntimeError, '예외로 코루틴 끝내기'))
+
+
+def test(func):
+    def wrapper():
+        print(func.__name__, '시작')
+        func()
+        print(func.__name__, '끝')
+    return wrapper
+
+@test
+def hello():
+    print('안녕하세요')
+
+
