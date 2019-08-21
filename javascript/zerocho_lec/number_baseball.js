@@ -1,13 +1,18 @@
 var body = document.body;
 
-var num_list = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-var num_array = [];
+var num_list;
+var num_array;
 
-for (var i = 0; i < 4; i++) {
-    var num = num_list.splice(Math.floor(Math.random() * num_list.length), 1)[0];
-    num_array.push(num);
-}
+function pick_number() {
+    num_list = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    num_array = [];
+    for (var i = 0; i < 4; i++) {
+        var num = num_list.splice(Math.floor(Math.random() * num_list.length), 1)[0];
+        num_array.push(num);
+    }
+};
 
+pick_number();
 var result = document.createElement('h1');
 body.append(result);
 var form = document.createElement('form');
@@ -31,22 +36,18 @@ form.addEventListener('submit', function callback(e) {
         input.value = '';
         input.focus();
 
-        num_list = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        num_array = [];
-        for (var i = 0; i < 4; i++) {
-            var num = num_list.splice(Math.floor(Math.random() * num_list.length), 1)[0];
-            num_array.push(num);
-        }
+        pick_number();
         failed = 0;
     } else { // 틀렸을 때
         var answer_array = answer.split('');
         var strike = 0;
         var ball = 0;
         failed += 1;
-        if (failed > 10) {
+        if (failed > 10) {  // 10번 넘게 틀린 경우
             result.textContent = '10번 넘게 틀려서 실패! 답은 ' + num_array.join('') + ' 였습니다.';
             input.value = '';
             input.focus();
+            pick_number();
             failed = 0;
         }
         for (var i = 0; i < 4; i++)

@@ -20,6 +20,7 @@ document.body.append(result_tag);
 
 form.addEventListener('submit', function callback(e) {
     e.preventDefault();
+    console.dir(e);
     if (result === Number(input.value)) {
         result_tag.textContent = '딩동댕';
         num1 = Math.ceil(Math.random() * 9);
@@ -35,3 +36,8 @@ form.addEventListener('submit', function callback(e) {
     }
 
 });
+
+var array = [];
+var object = {
+    name: 'jone',
+};
