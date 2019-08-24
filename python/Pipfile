@@ -9,6 +9,9 @@ pylint = "*"
 [packages]
 requests = "*"
 psycopg2 = "*"
+gevent = "*"
+lib = "*"
+twisted = {extras = ["tls"],version = "*"}
 
 [requires]
 python_version = "3.7"
