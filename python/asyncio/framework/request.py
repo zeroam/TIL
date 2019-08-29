@@ -12,6 +12,7 @@ class Request:
         self._url = URL(url.decode(self._encoding))
         self._headers = headers
         self._body = body
+        self._app = app
 
     @property
     def method(self):
@@ -24,6 +25,10 @@ class Request:
     @property
     def headers(self):
         return self._headers
+
+    @property
+    def app(self):
+        return self._app
 
     def text(self):
         if self._body is not None:

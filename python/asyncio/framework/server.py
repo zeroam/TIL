@@ -36,7 +36,6 @@ class Server(asyncio.Protocol, HttpParserMixin):
         # Pass data to our parser
         self._request_parser.feed_data(data)
 
-        self._request_handler(self._request, self.response_writer)
         # resp = Response(body=f'Received request on {self._request.url}')
         # self._transport.write(str(resp).encode(self._encoding))
         # self._transport.close()

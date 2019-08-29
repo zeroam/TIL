@@ -64,7 +64,6 @@ class Response:
         if self._body is not None:
             messages.append('\r\n' + self._body)
 
-        print('\r\n'.join(messages))
         return '\r\n'.join(messages)
 
     def __repr__(self):
