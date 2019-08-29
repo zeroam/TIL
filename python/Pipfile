@@ -14,6 +14,7 @@ lib = "*"
 twisted = {extras = ["tls"],version = "*"}
 httptools = "*"
 yarl = "*"
+nose2 = "*"
 
 [requires]
 python_version = "3.7"
