@@ -1,5 +1,22 @@
 var tbody = document.querySelector('#table tbody')
 
+function create_number(dataset, row, col) {
+    var arr = [dataset[row][col - 1], dataset[row][col + 1]];
+    if (dataset[row - 1]) {
+        arr.push(dataset[row - 1][col - 1]);
+        arr.push(dataset[row - 1][col]);
+        arr.push(dataset[row - 1][col + 1]);
+    }
+    if (dataset[row + 1]) {
+        arr.push(dataset[row + 1][col - 1]);
+        arr.push(dataset[row + 1][col]);
+        arr.push(dataset[row + 1][col + 1]);
+    }
+    return arr.filter(function (v) {
+            return v === 'X';
+        }).length;
+}
+
 document.querySelector('#exec').addEventListener('click', function() {
     // 지뢰 테이블 초기화
     tbody.innerHTML = '';
@@ -7,7 +24,6 @@ document.querySelector('#exec').addEventListener('click', function() {
     var hor = parseInt(document.querySelector('#hor').value);
     var ver = parseInt(document.querySelector('#ver').value);
     var mine = parseInt(document.querySelector('#mine').value);
-    console.log(hor, ver, mine);
     var num_list = Array(hor * ver)
         .fill()
         .map(function (item, index) {
@@ -21,6 +37,7 @@ document.querySelector('#exec').addEventListener('click', function() {
         shuffle.push(value);
     }
 
+    // 데이터 셋 초기화
     var dataset = []
     for (var i = 0; i < ver; i++) {
         var arr = [];
@@ -29,14 +46,34 @@ document.querySelector('#exec').addEventListener('click', function() {
             var td = document.createElement('td');
             td.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
-                e.currentTarget.textContent = '!';
                 var par_tr = e.currentTarget.parentNode;
                 var par_tbody = par_tr.parentNode;
                 // e.target 대신에 td를 사용하게 된다면 클로저 문제가 발생
                 var cur_col = Array.prototype.indexOf.call(par_tr.children, e.currentTarget);
                 var cur_row = Array.prototype.indexOf.call(par_tbody.children, par_tr);
-                dataset[cur_row][cur_col] = '!';
+                if (['', 'X'].includes(e.currentTarget.textContent)) {
+                    e.currentTarget.textContent = '!';
+                } else if (e.currentTarget.textContent === '!') {
+                    e.currentTarget.textContent = '?';
+                } else {
+                    if (dataset[cur_row][cur_col] === 1) {
+                        e.currentTarget.textContent = '';
+                    } else {
+                        e.currentTarget.textContent = 'X';
+                    }
+                }
                 console.log(dataset);
+            });
+            td.addEventListener('click', function (e) {
+                var par_tr = e.currentTarget.parentNode;
+                var par_tbody = par_tr.parentNode;
+                var cur_col = Array.prototype.indexOf.call(par_tr.children, e.currentTarget);
+                var cur_row = Array.prototype.indexOf.call(par_tbody.children, par_tr);
+                if (dataset[cur_row][cur_col] === 'X') {
+                    e.currentTarget.textContent = '펑';
+                } else {
+                    e.currentTarget.textContent = create_number(dataset, cur_row, cur_col);
+                }
             });
             tr.append(td);
             arr.push(1);
@@ -55,7 +92,19 @@ document.querySelector('#exec').addEventListener('click', function() {
     console.log(dataset);
 });
 
-tbody.addEventListener('contextmenu', function (e) {
-    console.log(e.currentTarget);
-    console.log(e.target);
-})
+var x = 'global';
+
+function ex() {
+    var x = 'local';
+    console.log(x);
+    function call() {
+        x = 'change';
+    }
+    console.dir(call);
+    call();
+    console.log(x);
+}
+
+ex();
+console.log(x);
+//window.alert(x);
