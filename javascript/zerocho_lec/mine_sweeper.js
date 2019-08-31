@@ -1,6 +1,6 @@
 var tbody = document.querySelector('#table tbody')
 
-function create_number(dataset, row, col) {
+function find_mine_number(dataset, row, col) {
     var arr = [dataset[row][col - 1], dataset[row][col + 1]];
     if (dataset[row - 1]) {
         arr.push(dataset[row - 1][col - 1]);
@@ -15,6 +15,44 @@ function create_number(dataset, row, col) {
     return arr.filter(function (v) {
             return v === 'X';
         }).length;
+}
+
+// 함수 실행 속도가 느린 로직 push 여러번 호출
+// function click_recursive(row, col) {
+//     var arr = [tbody.children[row].children[col - 1], tbody.children[row].children[col + 1]];
+//     if (tbody.children[row - 1]) {
+//         arr.push(tbody.children[row - 1].children[col - 1]);
+//         arr.push(tbody.children[row - 1].children[col]);
+//         arr.push(tbody.children[row - 1].children[col + 1]);
+//     }
+//     if (tbody.children[row + 1]) {
+//         arr.push(tbody.children[row + 1].children[col - 1]);
+//         arr.push(tbody.children[row + 1].children[col]);
+//         arr.push(tbody.children[row + 1].children[col + 1]);
+//     }
+//     arr.filter(function (v) {
+//         return !!v;
+//     }).forEach(function (item) {
+//         item.click();
+//     });
+// }
+function click_recursive(row, col) {
+    var arr = [tbody.children[row].children[col - 1], tbody.children[row].children[col + 1]];
+    if (tbody.children[row - 1]) {
+        arr = arr.concat([tbody.children[row - 1].children[col - 1], 
+            tbody.children[row - 1].children[col],
+            tbody.children[row - 1].children[col + 1]])
+    }
+    if (tbody.children[row + 1]) {
+        arr = arr.concat([tbody.children[row + 1].children[col - 1], 
+            tbody.children[row + 1].children[col],
+            tbody.children[row + 1].children[col + 1]])
+    }
+    arr.filter(function (v) {
+        return !!v;
+    }).forEach(function (item) {
+        item.click();
+    });
 }
 
 document.querySelector('#exec').addEventListener('click', function() {
@@ -69,10 +107,16 @@ document.querySelector('#exec').addEventListener('click', function() {
                 var par_tbody = par_tr.parentNode;
                 var cur_col = Array.prototype.indexOf.call(par_tr.children, e.currentTarget);
                 var cur_row = Array.prototype.indexOf.call(par_tbody.children, par_tr);
+                e.currentTarget.classList.add('opened');
                 if (dataset[cur_row][cur_col] === 'X') {
                     e.currentTarget.textContent = '펑';
                 } else {
-                    e.currentTarget.textContent = create_number(dataset, cur_row, cur_col);
+                    var mine_number = find_mine_number(dataset, cur_row, cur_col);
+                    if (mine_number === 0) {
+                        // 주변 8칸 동시 오픈(재귀 함수)
+                        click_recursive(cur_row, cur_col);
+                    }
+                    e.currentTarget.textContent = mine_number
                 }
             });
             tr.append(td);
@@ -91,20 +135,3 @@ document.querySelector('#exec').addEventListener('click', function() {
 
     console.log(dataset);
 });
-
-var x = 'global';
-
-function ex() {
-    var x = 'local';
-    console.log(x);
-    function call() {
-        x = 'change';
-    }
-    console.dir(call);
-    call();
-    console.log(x);
-}
-
-ex();
-console.log(x);
-//window.alert(x);

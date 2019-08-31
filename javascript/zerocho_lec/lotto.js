@@ -46,11 +46,19 @@ function create_ball(tag, number) {
     tag.appendChild(ball);
 }
 
+// for (let i = 0; i < nums.length; i++) {
+//     setTimeout(function callback() {
+//         create_ball(result_tag, nums[i]);
+//     }, 1000 * (i + 1));
+// }
 // 클로저 문제
-for (let i = 0; i < nums.length; i++) {
-    setTimeout(function callback() {
-        create_ball(result_tag, nums[i]);
-    }, 1000 * (i + 1));
+for (var i = 0; i < nums.length; i++) {
+    // 즉시 실행 함수
+    (function (j) {
+        setTimeout(function callback() {
+            create_ball(result_tag, nums[j]);
+        }, 1000 * (j + 1));
+    })(i);
 }
 
 setTimeout(function callback() {
