@@ -144,6 +144,7 @@ document.querySelector('#exec').addEventListener('click', function() {
                 e.currentTarget.removeEventListener('click', callback, false);
                 e.currentTarget.removeEventListener('contextmenu', right_callback, false);
                 e.currentTarget.addEventListener('contextmenu', function (e) {
+                    console.dir(e);
                     e.preventDefault();
                 })
 
