@@ -7,7 +7,7 @@ Base = declarative_base()
 
 class PlayerModel(Base):
     """Data model for players."""
-    __tablename__ 'sqlalchemy_tutorial_players'
+    __tablename__ = 'sqlalchemy_tutorial_players'
     # __table_args__ = {'schema': 'example'}
 
     id = Column(Integer,
