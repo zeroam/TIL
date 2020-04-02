@@ -31,13 +31,13 @@ except AssertionError as e:
     print(e)
 
 
-print('Number of times you called loads():')
+print("Number of times you called loads():")
 print(json.loads.call_count)
 
-print('The last loads() call:')
+print("The last loads() call:")
 print(json.loads.call_args)
 
-print('List of loads() calls:')
+print("List of loads() calls:")
 print(json.loads.call_args_list)
 
 print("List of calls to json's methods (recursively)")
