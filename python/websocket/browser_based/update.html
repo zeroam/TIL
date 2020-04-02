@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+        <ul id='time'></ul>
+    </head>
+    <body>
+        <script>
+            var ws = new WebSocket("ws://127.0.0.1:5678/"),
+                messages = document.createElement('ul');
+            ws.onmessage = function (event) {
+                var message = document.getElementById('time')
+                message.textContent = event.data
+            };
+            document.body.appendChild(messages);
+        </script>
+    </body>
+</html>
