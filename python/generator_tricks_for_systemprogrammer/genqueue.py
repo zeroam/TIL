@@ -5,7 +5,7 @@
 
 def genfrom_queue(thequeue):
     while True:
-        item = thequeue.get(timeout=3)
+        item = thequeue.get()
         if item is StopIteration:
             break
         yield item
