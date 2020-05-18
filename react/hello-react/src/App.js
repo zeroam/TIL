@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import MyComponent from "./MyComponent";
 import ValidationSample from './ValidationSample'
+import ScrollBox from './ScrollBox'
 import "./App.css";
 
 
@@ -19,6 +20,7 @@ function App() {
 
   return (
     <Fragment>
+      <ScrollBox />
       <div className="my-div">
         <h1>리액트</h1>
         <h2>{text}</h2>
