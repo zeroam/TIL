@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 function MyComponent(props) {
     const [number, setNumber] = useState(0);
 
-    function increment() {
+    const increment = () => {
         setNumber(prevState => prevState + 1);
     }
 

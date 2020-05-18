@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react';
 import MyComponent from "./MyComponent";
+import ValidationSample from './ValidationSample'
 import "./App.css";
 
 
@@ -26,6 +27,8 @@ function App() {
       </div>
       <MyComponent name="React" age={32} />
       <MyComponent age={23} />
+
+      <ValidationSample />
     </Fragment>
   )
 }
