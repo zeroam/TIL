@@ -5,44 +5,48 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flaskr</title>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">"
+  <link rel="stylesheet" type="text/css"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
 <body>
   <div class="page">
     <h1>Flaskr-TDD</h1>
+    <a class="btn btn-info" role="button" href="{{ url_for('search') }}">Search</a>
   </div>
 
   <div class="metanav">
     {% if not session.logged_in %}
-    <a href="{{ url_for('login') }}">log in</a>
+    <a class="btn btn-success" role="button" href="{{ url_for('login') }}">log in</a>
     {% else %}
-    <a href="{{ url_for('logout') }}">log in</a>
+    <a class="btn btn-warning" role="button" href="{{ url_for('logout') }}">log out</a>
     {% endif %}
   </div>
 
+  <br><br>
+
   {% for message in get_flashed_messages() %}
-  <div class="flash">{{ message }}</div>
+  <div class="flash alert alert-success col-sm-4" role="success">{{ message }}</div>
   {% endfor %}
 
-  {% block body %}{% endblock %}
-
   {% if session.logged_in %}
-  <form action="{{ url_for('add_entry') }}" method="post" class="add-entry">
+  <form action="{{ url_for('add_entry') }}" method="post" class="add-entry form-group">
     <dl>
       <dt>Title:</dt>
-      <dd><input type="text" size="30" name="title"></dd>
+      <dd><input type="text" size="30" name="title" class="form-control col-sm-4"></dd>
       <dt>Text:</dt>
-      <dd><textarea name="text" rows="5" cols="40"></textarea></dd>
-      <dd><input type="submit" value="Share"></dd>
+      <dd><textarea name="text" rows="5" cols="40" class="form-control col-sm-4"></textarea></dd>
+      <dd><input type="submit" class="btn btn-primary" value="Share"></dd>
     </dl>
   </form>
   {% endif %}
 
+  <br>
+
   <ul class="entries">
     {% for entry in entries %}
     <li class="entry">
-      <h2 id="{{ entry.id }}">{{ entry.title }}</h2>
+      <h2 id="{{ entry.post_id }}">{{ entry.title }}</h2>
       {{ entry.text|safe }}
     </li>
     {% else %}
