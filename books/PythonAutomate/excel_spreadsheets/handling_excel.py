@@ -86,6 +86,56 @@ print(wb.sheetnames)    # ['Spam Bacon Eggs Sheet', 'Sheet']
 wb.create_sheet(index=0, title="First Sheet")
 print(wb.sheetnames)    # ['First Sheet', 'Spam Bacon Eggs Sheet', 'Sheet']
 del wb['Spam Bacon Eggs Sheet']
-print(wb.sheetnames)    # ['First Sheet', 'Sheet']
+del wb['First Sheet']
+print(wb.sheetnames)    # ['Sheet']
 
-os.remove('sample.xlsx')
+
+# 폰트 설정하기
+from openpyxl.styles import Font
+sheet = wb.active
+font_obj1 = Font(name="Times New Roman", bold=True)
+sheet["A1"].font = font_obj1
+sheet["A1"] = "Bold Times New Roman"
+
+font_obj2 = Font(size=24, italic=True)
+sheet["B3"].font = font_obj2
+sheet["B3"] = "24 pt Italic"
+
+
+# 계산식(Formulas) 적용하기
+sheet["C1"] = 200
+sheet["C2"] = 300
+sheet["C3"] = "=SUM(C1:C2)" # 계산식 설정
+
+
+# 행의 높이, 열의 너비 설정하기
+sheet["A2"] = "Tall row"
+sheet["B2"] = "Wide column"
+sheet.row_dimensions[2].height = 70
+sheet.column_dimensions["B"].width = 20
+
+
+# 여러개 셀 합치기, 나누기
+sheet.merge_cells("A4:D7")
+sheet["A4"] = "Twelve cells merged together"
+sheet.merge_cells("C8:D8")
+sheet["C8"] = "Two merged cells"
+sheet.unmerge_cells("C8:D8")
+
+
+# 고정틀 설정하기
+sheet.freeze_panes = "A2"   # 첫 행 고정틀
+
+
+# 차트 그리기
+for i in range(1, 11):
+    # 임의 데이터 생성
+    sheet[f"E{i}"] = i
+ref_obj = openpyxl.chart.Reference(sheet, min_col=5, min_row=1, max_col=5, max_row=10)
+series_obj = openpyxl.chart.Series(ref_obj, title="First Series")
+chart_obj = openpyxl.chart.BarChart()
+chart_obj.title = "My Chart"
+chart_obj.append(series_obj)
+sheet.add_chart(chart_obj, "G2")
+
+wb.save("sample.xlsx")
