@@ -8,6 +8,8 @@ from openpyxl.styles import Font
 
 if len(sys.argv) != 2:
     print(f"python {__file__} <num>")
+    sys.exit(1)
+
 size = int(sys.argv[1])
 
 wb = openpyxl.Workbook()

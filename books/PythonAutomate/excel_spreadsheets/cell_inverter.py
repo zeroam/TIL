@@ -6,6 +6,7 @@ import openpyxl
 
 if len(sys.argv) != 2:
     print(f"python {__file__} <*.xlsx>")
+    sys.exit(1)
 
 file_name = sys.argv[1]
 

@@ -7,6 +7,7 @@ import openpyxl
 
 if len(sys.argv) != 4:
     print(f"python {__file__} <start_row> <blank_size> <excel file>")
+    sys.exit(1)
 
 start_row = int(sys.argv[1])
 blank_size = int(sys.argv[2])

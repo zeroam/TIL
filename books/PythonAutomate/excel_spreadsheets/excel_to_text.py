@@ -8,6 +8,7 @@ from openpyxl.utils import get_column_letter
 
 if len(sys.argv) != 2:
     print(f"python {__file__} <excel file>")
+    sys.exit(1)
 
 file_name = sys.argv[1]
 base, _, ext = file_name.rpartition(".")
