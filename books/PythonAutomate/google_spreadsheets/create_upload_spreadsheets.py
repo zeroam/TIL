@@ -19,3 +19,4 @@ ss.delete()  # 스프레드 시트 삭제하기
 # 이미 존재하는 엑셀 문서 업로드
 ss = ezsheets.upload("example.xlsx")
 print(ss.title)
+print(ss.url)
