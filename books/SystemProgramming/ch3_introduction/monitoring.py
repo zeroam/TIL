@@ -8,7 +8,7 @@ from text_colors import colors
 from mylog import get_log_data
 
 
-def check(file_name, search_word):
+def check(file_name, search_word, out_file_name):
     if os.path.exists(file_name):
         print(f"모니터링 시작 : {file_name}")
         print(f"대상 : {search_word}")
@@ -27,7 +27,14 @@ def check(file_name, search_word):
         if index >= 0:
             alert(search_word)
             data, _ = get_log_data(file_data, search_word, index, 2, 2)
-            print(data)
+
+            out_file = open(out_file_name, "a")
+            out_file.write("\n" + ("*" * 70))
+            out_file.write(f"\n문제({search_word})가 모니터링 된 시각 : {datetime.datetime.now()}")
+            out_file.write("\n" + ("*" * 70))
+            out_file.write(data)
+            out_file.close()
+            print(f"로그가 기록된 파일을 확인하세요: {out_file_name}")
         else:
             print("...", end="", flush=True)
 
@@ -44,4 +51,4 @@ def alert(search_word):
 
 
 if __name__ == "__main__":
-    check("/var/log/syslog", "FATAL")
+    check("/var/log/syslog", "FATAL", "customized_warn")
