@@ -19,11 +19,11 @@ def get_parser() -> ArgumentParser:
     frequent_parser = subparsers.add_parser("freq", help="show frequent history")
     frequent_parser.add_argument("count", type=int, nargs="?", default=5, help="number to show")
 
-    date_parser = subparsers.add_parser("date", help="show specific date history for one day")
+    date_parser = subparsers.add_parser("date", help="show specific date history before, after one hour")
     date_parser.add_argument("year", type=int, help="year of the history")
     date_parser.add_argument("month", type=int, help="month of the history")
     date_parser.add_argument("day", type=int, help="day of the history")
-    date_parser.add_argument("hour", type=int, nargs="?", default=0, help="hour of the history")
+    date_parser.add_argument("hour", type=int, help="hour of the history")
 
     return parser
 
@@ -102,8 +102,11 @@ def history_freq(accounts: list, num: int) -> None:
 
 
 
-def history_date(accounts: list, start_date: datetime) -> None:
-    end_date = start_date + timedelta(days=1)
+def history_date(accounts: list, date: datetime) -> None:
+    start_date = date - timedelta(hours=1)
+    end_date = date + timedelta(hours=1)
+
+    print(f"{start_date} ~ {end_date} 까지의 히스토리")
     for account in accounts:
         print(f"계정: {account}")
 
