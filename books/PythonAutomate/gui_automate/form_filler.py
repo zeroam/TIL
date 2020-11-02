@@ -4,8 +4,8 @@
 import pyautogui
 import time
 
-name_field = (716, 399)
-another_link = (706, 271)
+name_field = (764,430)
+another_link = (744,299)
 
 form_data = [
     {"name": "Alice", "fear": "eavesdroppers", "source": "wand", "robocop": 4, "comments": "Tell Bob I said hi."},
