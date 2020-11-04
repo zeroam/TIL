@@ -1,51 +1,51 @@
-from flask import Flask, jsonify, request
-from flask_jwt_extended import (
-    JWTManager,
-    jwt_required,
-    create_access_token,
-    get_jwt_identity,
-)
+from flask import Flask
+from flask_restful import Api
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
 
+# Making Flask Application
 app = Flask(__name__)
 
-# Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = "super-secret"
+# Object of Api class
+api = Api(app)
+
+# Application Configuration
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://root:root@localhost/jwt_auth"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "secret-key"
+app.config["JWT_SCRET_KEY"] = "jwt-secret-key"
+app.config["JWT_BLACKLIST_ENABLED"] = True
+app.config["JWT_BLACKLIST_TOKEN_CHECKS"] = ["access", "refresh"]
+
+# Sqlalchemy object
+db = SQLAlchemy(app)
+
+# JwtManager object
 jwt = JWTManager(app)
 
 
-# Provide a method to create access tokens. The create_access_token()
-# function is used to actually generate the token, and you can return
-# it to the caller however you choose.
-@app.route("/login", methods=["POST"])
-def login():
-    if not request.is_json:
-        return jsonify({"msg": "Missing JSON in request"}), 400
-
-    username = request.json.get("username", None)
-    password = request.json.get("password", None)
-    if not username:
-        return jsonify({"msg": "Missing username parameter"}), 400
-    if not password:
-        return jsonify({"msg": "Missing password parameter"}), 400
-
-    if username != "test" or password != "test":
-        return jsonify({"msg": "Bad username or password"}), 401
-
-    # Identify can be any data that is json serializable
-    access_token = create_access_token(identity=username)
-    return jsonify(access_token=access_token), 200
+# Generating tables before first request is fetched
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 
+# Checking that token is in blacklist or not
+@jwt.token_in_blacklist_loader
+def check_if_token_in_blacklist(decrypted_token):
+    jti = decrypted_token["jti"]
 
-# Protect a view with jwt_required, which requires a valid access token
-# in the request to access.
-@app.route("/protected", methods=["GET"])
-@jwt_required
-def protected():
-    # Access the identity or the current user with get_jwt_identity
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+    return models.RevokedTokenModel.is_jti_blacklisted(jti)
 
 
-if __name__ == "__main__":
-    app.run()
+# Importing models and resources
+import models, resources
+
+# Api Endpoints
+api.add_resource(resources.UserRegistration, "/registration")
+api.add_resource(resources.UserLogin, "/login")
+api.add_resource(resources.UserLogoutAccess, "/logout/access")
+api.add_resource(resources.UserLogoutRefresh, "/logout/refresh")
+api.add_resource(resources.TokenRefresh, "/token/refresh")
+api.add_resource(resources.AllUsers, "/users")
+api.add_resource(resources.SecretResource, "/secret")
